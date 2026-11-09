@@ -1,0 +1,7 @@
+# checkov settings. Every skipped check needs a reason, either here or as an inline
+# `#checkov:skip=CKV_...:reason` comment next to the resource.
+framework:
+  - terraform
+skip-path:
+  - .terraform
+skip-check: []

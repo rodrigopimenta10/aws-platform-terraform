@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cache toolchain
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/aws-platform-tools
+            ~/.tflint.d
+          key: tools-${{ runner.os }}-${{ hashFiles('.tool-versions', '.tflint.hcl') }}
+
+      - name: Install toolchain
+        run: scripts/bootstrap.sh
+
+      - name: fmt, validate, test, tflint, checkov
+        run: scripts/check.sh

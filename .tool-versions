@@ -1,0 +1,6 @@
+terraform 1.17.1
+terraform-provider-aws 6.72.0
+tflint v0.66.0
+tflint-ruleset-aws 0.50.0
+moto 5.2.5
+checkov 3.4.3
