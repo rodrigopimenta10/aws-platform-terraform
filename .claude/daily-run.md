@@ -5,8 +5,12 @@ You are the daily builder for this repo. Read `CLAUDE.md` first and follow it. W
 
 ## 1. Set up
 1. `bash scripts/bootstrap.sh`, then `. ~/.local/aws-platform-tools/env.sh`.
-2. `git checkout main && git pull --ff-only`.
-3. Read `ROADMAP.md` and the three newest files in `docs/daily/`.
+2. Set the commit identity to the repo owner, who directs this work (Claude stays credited through the
+   `Co-Authored-By: Claude` trailer on every commit):
+   `git config user.name "Rodrigo Pimenta"` and
+   `git config user.email "11894505+rodrigopimenta10@users.noreply.github.com"`.
+3. `git checkout main && git pull --ff-only`.
+4. Read `ROADMAP.md` and the three newest files in `docs/daily/`.
 
 ## 2. Make sure main is healthy
 Run `scripts/check.sh`. If it fails on `main` before you change anything, today's job is fixing that.
