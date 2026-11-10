@@ -1,7 +1,7 @@
 # ADR 0002: One naming scheme and one tag map, from `modules/labels`
 
 - **Status:** accepted
-- **Date:** 2026-11-10
+- **Date:** 2026-11-09
 
 ## Context
 A **tag** in AWS is a key/value label attached to a resource. Tags drive cost reports ("what did the
