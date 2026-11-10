@@ -47,6 +47,7 @@ envs/dev/     root module that wires the modules together
 platform/     Kubernetes manifests and Helm values
 docs/adr/     architecture decision records
 docs/daily/   daily learning notes
+docs/milestones/  one recap per finished milestone, with steps to apply it in a real account
 scripts/      bootstrap and check scripts
 ```
 
