@@ -79,6 +79,18 @@ if ! "$BIN/tflint" --version 2>/dev/null | grep -q "${TFLINT_VERSION#v}"; then
   unzip_to "$tmp/tflint.zip" "$tmp/tflint" && install -m 0755 "$tmp/tflint/tflint" "$BIN/tflint"
 fi
 
+# `tflint --init` finds plugins through api.github.com, which sandboxed networks often block.
+# Download the AWS ruleset straight from its release page and put it where --init would.
+RULESET_VERSION="$(ver tflint-ruleset-aws)"
+RULESET_DIR="$HOME/.tflint.d/plugins/github.com/terraform-linters/tflint-ruleset-aws/${RULESET_VERSION}"
+if [ ! -x "$RULESET_DIR/tflint-ruleset-aws" ]; then
+  echo "Installing tflint-ruleset-aws $RULESET_VERSION"
+  curl -fsSL -o "$tmp/ruleset.zip" \
+    "https://github.com/terraform-linters/tflint-ruleset-aws/releases/download/v${RULESET_VERSION}/tflint-ruleset-aws_${OS}_${ARCH}.zip"
+  mkdir -p "$RULESET_DIR"
+  unzip_to "$tmp/ruleset.zip" "$tmp/ruleset" && install -m 0755 "$tmp/ruleset/tflint-ruleset-aws" "$RULESET_DIR/tflint-ruleset-aws"
+fi
+
 # --- checkov + Moto (from PyPI, in a venv) ---
 VENV="$TOOLS_DIR/venv"
 if [ ! -x "$VENV/bin/python" ]; then python3 -m venv "$VENV"; fi
@@ -98,7 +110,8 @@ mkdir -p "$TOOLS_DIR/plugin-cache"
 
 # shellcheck disable=SC1091
 . "$TOOLS_DIR/env.sh"
-terraform version | head -1
-tflint --version | head -1
+# sed, not head: head exits early and the SIGPIPE fails the script under pipefail.
+terraform version | sed -n 1p
+tflint --version | sed -n 1p
 echo "checkov $(checkov --version)"
 echo "Toolchain ready. Run: . $TOOLS_DIR/env.sh"

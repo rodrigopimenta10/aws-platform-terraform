@@ -60,11 +60,14 @@ for d in "${dirs[@]}"; do
 done
 
 step "tflint"
-tflint --init --config "$ROOT/.tflint.hcl" >/dev/null
+# bootstrap.sh installs the AWS ruleset directly; only fall back to --init if it's missing.
+compgen -G "$HOME/.tflint.d/plugins/github.com/terraform-linters/tflint-ruleset-aws/*/tflint-ruleset-aws" >/dev/null \
+  || tflint --init --config "$ROOT/.tflint.hcl" >/dev/null
 tflint --recursive --config "$ROOT/.tflint.hcl" --format compact || fail=1
 
 step "checkov"
-checkov -d . --config-file .checkov.yaml --quiet --compact || fail=1
+# --skip-download: don't call the Prisma Cloud API for guideline links (blocked in sandboxes, not needed).
+checkov -d . --config-file .checkov.yaml --quiet --compact --skip-download || fail=1
 
 if [ $fail -ne 0 ]; then echo; echo "CHECKS FAILED"; exit 1; fi
 echo; echo "ALL CHECKS PASSED"
