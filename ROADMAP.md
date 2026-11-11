@@ -16,7 +16,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 ## M0: Foundations
 - [x] **M0.1** (S) Shared conventions: `modules/labels` module that builds names and the standard tag map (`project`, `environment`, `owner`, `managed-by = terraform`). ADR 0002 on naming and tagging.
 - [x] **M0.2** (M) Remote state: `modules/state-backend`, an S3 bucket with versioning, SSE-KMS, public access fully blocked, TLS-only bucket policy, and lifecycle on noncurrent versions. Uses S3 native locking (`use_lockfile`), with no DynamoDB table. ADR 0003 explaining why.
-- [ ] **M0.3** (S) `envs/dev` root module wired to `labels` and the provider, with a commented-out S3 backend block and a README on how to bootstrap state.
+- [x] **M0.3** (S) `envs/dev` root module wired to `labels` and the provider, with a commented-out S3 backend block and a README on how to bootstrap state.
 
 ## M1: Network
 - [ ] **M1.1** (L) `modules/vpc`: VPC across 3 AZs with public, private and isolated subnet tiers, sized by variables using `cidrsubnet`. Outputs ready for EKS.
