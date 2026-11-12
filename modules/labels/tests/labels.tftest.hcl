@@ -66,6 +66,19 @@ run "extra_tags_merge_but_never_override" {
   }
 }
 
+run "accepts_live_environment" {
+  command = plan
+
+  variables {
+    environment = "live"
+  }
+
+  assert {
+    condition     = output.prefix == "platform-live" && output.tags["environment"] == "live"
+    error_message = "live is a valid environment for live-drill stacks."
+  }
+}
+
 run "rejects_unknown_environment" {
   command = plan
 

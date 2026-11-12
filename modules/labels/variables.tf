@@ -9,12 +9,12 @@ variable "project" {
 }
 
 variable "environment" {
-  description = "Deployment environment. One of dev, staging, prod."
+  description = "Deployment environment. One of dev, staging, prod, or live (short-lived stacks created and destroyed by the live drill, see live/README.md)."
   type        = string
 
   validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "environment must be one of: dev, staging, prod."
+    condition     = contains(["dev", "staging", "prod", "live"], var.environment)
+    error_message = "environment must be one of: dev, staging, prod, live."
   }
 }
 
