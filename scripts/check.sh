@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs every check CI runs: fmt, validate, tflint, checkov, and `terraform test`
+# Runs every check CI runs: fmt, the live-drill stack lists, validate, tflint, checkov, and `terraform test`
 # (unit tests with mock providers + integration tests applied against a local Moto server).
 # Nothing here talks to real AWS.
 #
@@ -35,6 +35,9 @@ step() { printf '\n== %s\n' "$*"; }
 
 step "terraform fmt"
 terraform fmt -check -recursive -diff || fail=1
+
+step "live drill stack lists"
+scripts/check-live-stacks.sh || fail=1
 
 if [ ${#dirs[@]} -eq 0 ]; then
   echo "No Terraform modules yet. Nothing else to check."
