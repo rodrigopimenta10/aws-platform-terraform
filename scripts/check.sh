@@ -25,7 +25,7 @@ export MOTO_ENDPOINT="${MOTO_ENDPOINT:-http://127.0.0.1:5000}"
 
 if [ $# -gt 0 ]; then dirs=("$@"); else
   dirs=()
-  for d in modules/* envs/*; do
+  for d in modules/* envs/* live/bootstrap live/stacks/*; do
     [ -d "$d" ] && compgen -G "$d/*.tf" >/dev/null && dirs+=("$d")
   done
 fi
