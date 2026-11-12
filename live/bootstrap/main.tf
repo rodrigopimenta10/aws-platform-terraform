@@ -44,7 +44,13 @@ locals {
   # GitHub's default subject claim for a job that runs in an environment:
   # repo:<owner>/<repo>:environment:<name>. Branch, pull request and other-repo tokens all carry a
   # different subject, so they cannot match.
-  oidc_subject = "repo:${var.github_repository}:environment:${var.github_environment}"
+  # GitHub's subject for this repository includes the owner's and the repository's numeric IDs:
+  # repo:<owner>@<owner id>/<repo>@<repo id>:environment:<name>. Seen in CloudTrail on the first drill
+  # (2026-11-12): a role expecting the plain repo:<owner>/<repo>:... form was refused with AccessDenied.
+  # The IDs never change, so a renamed or re-created repository with the same name cannot match.
+  github_owner = split("/", var.github_repository)[0]
+  github_name  = split("/", var.github_repository)[1]
+  oidc_subject = "repo:${local.github_owner}@${var.github_owner_id}/${local.github_name}@${var.github_repository_id}:environment:${var.github_environment}"
 
   # ARNs are built from their documented formats (rather than read from the resources) so the policies
   # are fully known at plan time and the unit tests can inspect them.

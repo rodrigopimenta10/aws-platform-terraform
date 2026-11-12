@@ -44,12 +44,15 @@ input in a `terraform.tfvars` here (gitignored) or with `-var`.
 "Action": "sts:AssumeRoleWithWebIdentity",
 "Condition": { "StringEquals": {
   "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-  "token.actions.githubusercontent.com:sub": "repo:rodrigopimenta10/aws-platform-terraform:environment:aws-live"
+  "token.actions.githubusercontent.com:sub": "repo:rodrigopimenta10@11894505/aws-platform-terraform@1451999319:environment:aws-live"
 } }
 ```
 
-GitHub sets `sub` (the token's subject) to `repo:<owner>/<repo>:environment:<name>` for a job that declares
-an `environment`. A job on a branch without that environment, a pull request, a fork or any other repository
+GitHub sets `sub` (the token's subject) to `repo:<owner>@<owner id>/<repo>@<repo id>:environment:<name>` for
+a job that declares an `environment`. The numeric IDs (`github_owner_id`, `github_repository_id`) are in the
+subject for this repository: the first drill, on 2026-11-12, was refused by a role that expected the older
+`repo:<owner>/<repo>:environment:<name>` form, and CloudTrail showed the subject GitHub actually sent. Because
+the IDs never change, a renamed or re-created repository with the same name cannot match. A job on a branch without that environment, a pull request, a fork or any other repository
 gets a different `sub`, so `StringEquals` rejects it. The `aws-live` environment is what turns this into a
 human decision: it requires Rodrigo's approval for every job and only accepts runs from `main`. AWS's own
 [guidance for GitHub OIDC roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html)

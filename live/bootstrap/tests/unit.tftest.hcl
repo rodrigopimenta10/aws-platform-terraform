@@ -75,7 +75,7 @@ run "trust_policy_allows_only_the_aws_live_environment" {
   }
 
   assert {
-    condition     = jsondecode(aws_iam_role.drill.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:rodrigopimenta10/aws-platform-terraform:environment:aws-live"
+    condition     = jsondecode(aws_iam_role.drill.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:rodrigopimenta10@11894505/aws-platform-terraform@1451999319:environment:aws-live"
     error_message = "sub must equal the aws-live environment of this repo, with StringEquals (no wildcards)."
   }
 
@@ -179,12 +179,14 @@ run "other_repository_and_environment_flow_into_trust" {
   command = plan
 
   variables {
-    github_repository  = "example-org/infra"
-    github_environment = "sandbox"
+    github_repository    = "example-org/infra"
+    github_owner_id      = "1001"
+    github_repository_id = "2002"
+    github_environment   = "sandbox"
   }
 
   assert {
-    condition     = jsondecode(aws_iam_role.drill.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:example-org/infra:environment:sandbox"
+    condition     = jsondecode(aws_iam_role.drill.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:example-org@1001/infra@2002:environment:sandbox"
     error_message = "Variables should flow into the subject condition."
   }
 }
