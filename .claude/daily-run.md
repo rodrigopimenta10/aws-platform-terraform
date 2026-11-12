@@ -50,6 +50,12 @@ Commit as `docs: daily note YYYY-MM-DD`.
   the whole milestone with collapsed answers, and an "Apply it for real" section: the exact commands
   for Rodrigo to apply this milestone in his own AWS account, what to look at in the console, the
   rough cost per hour, and the destroy and verify steps. You still never run those commands yourself.
+  Also add or update `live/stacks/m<N>/` (a root module that applies this milestone's modules, cheapest
+  settings, `force_destroy = true` and the shortest KMS deletion window where those exist) and its entry
+  in `live/screenshots.yml`, and point the recap's "Apply it for real" section at `/live-drill m<N>`.
+  This keeps every future milestone drillable without more setup. Add the new stack's name to the
+  `stack` choice list in `.github/workflows/live-drill.yml` too: that one list is the only part of a
+  `live-*.yml` workflow you may edit, and `scripts/check.sh` fails until the list matches `live/stacks/*`.
 
 ## 5. Push
 1. `scripts/check.sh` must print `ALL CHECKS PASSED`.
@@ -64,6 +70,7 @@ Commit as `docs: daily note YYYY-MM-DD`.
 - Use real AWS credentials, apply against anything but Moto, or add secrets.
 - Change past daily notes, rewrite history, force-push, or fake commit dates.
 - Work on anything outside `ROADMAP.md`. If the roadmap is finished, write a final note saying so and stop.
+- Dispatch workflows, approve deployments, or edit `live/bootstrap/` or `.github/workflows/live-*.yml`.
 
 ## Finish
 End with a three-line summary: the item(s) done, commit count, and anything Rodrigo should look at.

@@ -1,12 +1,16 @@
 # CLAUDE.md
 
 This repo is a learning portfolio: a production-style AWS platform in Terraform, built one roadmap item
-at a time by a daily Claude Code cloud run and reviewed by Rodrigo. It is never applied to a real AWS
-account by an agent. Everything is tested offline: mock providers and a local Moto server.
+at a time by a daily Claude Code cloud run and reviewed by Rodrigo. Agents never apply it to a real AWS
+account **except** through the live drill (`.github/workflows/live-drill.yml`), which only runs when
+Rodrigo starts it and approves the `aws-live` environment. The daily routine never runs it.
+Everything else is tested offline: mock providers and a local Moto server.
 
 ## Ground rules
 - **No real AWS.** Never configure real credentials, never run `terraform apply` outside `terraform test`
   against Moto, never add a backend that points at real S3. `scripts/check.sh` sets fake credentials.
+  The only exception is the live drill above: its stacks under `live/stacks/` carry an empty
+  `backend "s3" {}` that the workflow fills at run time.
 - **No secrets in the repo.** It's public. No keys, tokens, account IDs, emails or IPs that aren't
   documentation examples (`123456789012`, `203.0.113.0/24`).
 - **Production-style, not toy.** Encryption on by default, least-privilege IAM, no `*` actions without
