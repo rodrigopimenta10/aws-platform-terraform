@@ -28,6 +28,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 ## M2: Identity and security
 - [ ] **M2.1** (M) `modules/kms`: customer-managed keys with rotation and a least-privilege key policy, reused by the other modules.
 - [ ] **M2.2** (L) `modules/github-oidc`: GitHub Actions OIDC provider plus a deploy role whose trust policy is scoped to this repo and branch. Explain in the README why OIDC beats long-lived keys.
+  - Note: `live/bootstrap` already creates the GitHub OIDC provider (`token.actions.githubusercontent.com`) in the real account, and AWS allows only one provider per URL. When `modules/github-oidc` is wired into a root module that targets that account, take the existing provider over with `import` (and `moved` blocks if it moves out of `live/bootstrap`) rather than creating a second one. Don't edit `live/bootstrap` itself: the daily run may not touch it, so leave a note for Rodrigo.
 - [ ] **M2.3** (M) IAM permission boundary for roles the platform creates, plus a test that a role without the boundary is rejected (a `precondition` or check block).
 - [ ] **M2.4** (S) Account baseline: `aws_ebs_encryption_by_default`, S3 account-level public access block, IAM password policy.
 
