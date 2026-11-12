@@ -26,6 +26,28 @@ variable "github_repository" {
   }
 }
 
+variable "github_owner_id" {
+  description = "Numeric ID of the repository's owner on GitHub (`gh api users/<owner> --jq .id`). Part of the OIDC subject GitHub sends for this repository."
+  type        = string
+  default     = "11894505"
+
+  validation {
+    condition     = can(regex("^[0-9]+$", var.github_owner_id))
+    error_message = "github_owner_id must be digits only."
+  }
+}
+
+variable "github_repository_id" {
+  description = "Numeric ID of the repository on GitHub (`gh api repos/<owner>/<repo> --jq .id`). Part of the OIDC subject GitHub sends for this repository."
+  type        = string
+  default     = "1451999319"
+
+  validation {
+    condition     = can(regex("^[0-9]+$", var.github_repository_id))
+    error_message = "github_repository_id must be digits only."
+  }
+}
+
 variable "github_environment" {
   description = "GitHub environment the workflow job must run in. Its protection rules (required reviewer, main branch only) are what make each drill a human decision."
   type        = string
