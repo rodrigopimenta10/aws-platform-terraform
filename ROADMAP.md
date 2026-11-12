@@ -19,7 +19,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 - [x] **M0.3** (S) `envs/dev` root module wired to `labels` and the provider, with a commented-out S3 backend block and a README on how to bootstrap state.
 
 ## M1: Network
-- [ ] **M1.1** (L) `modules/vpc`: VPC across 3 AZs with public, private and isolated subnet tiers, sized by variables using `cidrsubnet`. Outputs ready for EKS.
+- [x] **M1.1** (L) `modules/vpc`: VPC across 3 AZs with public, private and isolated subnet tiers, sized by variables using `cidrsubnet`. Outputs ready for EKS.
 - [ ] **M1.2** (M) NAT strategy: `single_nat_gateway` vs one per AZ, controlled by a variable. ADR 0004 on cost vs availability, with rough monthly numbers.
 - [ ] **M1.3** (M) VPC endpoints: an S3 gateway endpoint, plus interface endpoints for ECR (api, dkr), STS and CloudWatch Logs, each with its own security group.
 - [ ] **M1.4** (S) VPC flow logs to CloudWatch Logs with a retention variable and a KMS key.
