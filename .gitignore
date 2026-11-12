@@ -15,3 +15,7 @@ secret*.tfvars
 .env
 .DS_Store
 __pycache__/
+
+# Live drill: bootstrap inputs and unredacted console screenshots stay local.
+live/bootstrap/terraform.tfvars
+docs/live/.raw/
