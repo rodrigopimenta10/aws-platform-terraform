@@ -1,0 +1,109 @@
+# Backstop for the live drill: once a day, destroy any live/stacks/<stack> whose Terraform state is not
+# empty (a drill whose own destroy failed or never ran). The drill's destroy job is the main path; this
+# catches what slips through.
+#
+# It uses the aws-live environment like the drill, so every run waits for Rodrigo's approval: an agent can
+# never reach AWS on its own, even to clean up. If nothing is left, approving does no harm and rejecting is
+# fine too; a newer daily run replaces a pending one. The AWS budget emails are the alarm that something
+# is running; this workflow is how it gets removed.
+name: live-reaper
+
+on:
+  schedule:
+    - cron: "0 13 * * *" # 13:00 UTC daily
+  workflow_dispatch:
+
+permissions:
+  id-token: write # request the GitHub OIDC token that AWS exchanges for role credentials
+  contents: read
+  actions: read # list live-drill runs, so a drill in its screenshot window is left alone
+
+concurrency:
+  group: live-reaper
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_LIVE_REGION }}
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+jobs:
+  reap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: aws-live
+    steps:
+      - uses: actions/checkout@v5
+
+      # A drill that is still running owns its stack: its destroy job is waiting or holding.
+      - name: Skip while a live drill is running
+        id: drills
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow live-drill.yml --limit 20 \
+            --json status --jq '[.[] | select(.status != "completed")] | length')"
+          echo "active=$active" >> "$GITHUB_OUTPUT"
+          if [ "$active" != "0" ]; then
+            echo "::notice::$active live drill run(s) still in progress; their destroy jobs are in charge. Nothing reaped."
+            echo "Skipped: a live drill is still running." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Read the pinned Terraform version
+        if: steps.drills.outputs.active == '0'
+        id: versions
+        run: echo "terraform=$(awk '$1 == "terraform" {print $2}' .tool-versions)" >> "$GITHUB_OUTPUT"
+
+      - uses: hashicorp/setup-terraform@v4
+        if: steps.drills.outputs.active == '0'
+        with:
+          terraform_version: ${{ steps.versions.outputs.terraform }}
+          terraform_wrapper: false
+
+      - name: Assume the drill role (OIDC, 1 hour)
+        if: steps.drills.outputs.active == '0'
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_LIVE_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_LIVE_REGION }}
+          role-session-name: live-reaper-${{ github.run_id }}
+          role-duration-seconds: 3600
+          mask-aws-account-id: true
+
+      - name: Mask the account ID
+        if: steps.drills.outputs.active == '0'
+        run: |
+          account="$(aws sts get-caller-identity --query Account --output text)"
+          echo "::add-mask::$account"
+
+      - name: Destroy every stack whose state is not empty
+        if: steps.drills.outputs.active == '0'
+        env:
+          STATE_BUCKET: ${{ secrets.AWS_LIVE_STATE_BUCKET }}
+        run: |
+          status=0
+          echo "## Live reaper" >> "$GITHUB_STEP_SUMMARY"
+          for dir in live/stacks/*/; do
+            stack="$(basename "$dir")"
+            terraform -chdir="$dir" init -input=false -reconfigure \
+              -backend-config="bucket=$STATE_BUCKET" \
+              -backend-config="key=live/$stack/terraform.tfstate" \
+              -backend-config="region=$AWS_REGION" \
+              -backend-config="use_lockfile=true" >/dev/null
+            if [ -z "$(terraform -chdir="$dir" state list)" ]; then
+              echo "$stack: state empty, nothing to do"
+              echo "- \`$stack\`: empty" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            echo "::warning::$stack: state is not empty, destroying"
+            if terraform -chdir="$dir" destroy -auto-approve -input=false -var "region=$AWS_REGION" \
+              && [ -z "$(terraform -chdir="$dir" state list)" ] \
+              && live/verify-destroyed.sh "$stack"; then
+              echo "- \`$stack\`: **was not empty, destroyed and verified**" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::error::$stack: destroy failed or left resources behind"
+              echo "- \`$stack\`: **DESTROY FAILED, resources may still be running**" >> "$GITHUB_STEP_SUMMARY"
+              status=1
+            fi
+          done
+          exit $status
