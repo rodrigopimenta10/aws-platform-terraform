@@ -1,0 +1,65 @@
+# Integration test: applies the module against a local Moto server (see ADR 0001). No real AWS.
+provider "aws" {
+  region                      = "us-east-1"
+  access_key                  = "test"
+  secret_key                  = "test"
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  skip_metadata_api_check     = true
+
+  endpoints {
+    ec2 = "http://127.0.0.1:5000"
+    sts = "http://127.0.0.1:5000"
+  }
+}
+
+variables {
+  project           = "platform"
+  environment       = "dev"
+  owner             = "platform-team"
+  eks_cluster_names = ["platform-dev"]
+}
+
+run "creates_three_tier_network" {
+  command = apply
+
+  assert {
+    condition     = length(output.availability_zones) == 3 && length(distinct(output.availability_zones)) == 3
+    error_message = "Three distinct AZs expected."
+  }
+
+  assert {
+    condition     = length(output.public_subnet_ids) == 3 && length(output.private_subnet_ids) == 3 && length(output.isolated_subnet_ids) == 3
+    error_message = "Three subnets per tier expected."
+  }
+
+  assert {
+    condition     = aws_vpc.this.cidr_block == "10.0.0.0/16" && can(regex("^vpc-", output.vpc_id))
+    error_message = "VPC should exist with the default CIDR."
+  }
+
+  assert {
+    condition     = length(output.private_route_table_ids) == 3 && length(distinct(output.private_route_table_ids)) == 3
+    error_message = "Three distinct private route tables expected."
+  }
+
+  assert {
+    condition     = aws_subnet.private[0].tags["kubernetes.io/role/internal-elb"] == "1" && aws_subnet.public[1].tags["kubernetes.io/role/elb"] == "1"
+    error_message = "Subnets should carry the EKS role tags after apply."
+  }
+
+  assert {
+    condition     = aws_route.public_internet.gateway_id == output.internet_gateway_id
+    error_message = "Public default route should target the internet gateway."
+  }
+
+  assert {
+    condition     = aws_subnet.private[0].availability_zone == output.availability_zones[0]
+    error_message = "Subnets should be placed in the AZs listed in the output."
+  }
+
+  assert {
+    condition     = length(aws_default_security_group.this.ingress) == 0 && length(aws_default_security_group.this.egress) == 0
+    error_message = "The default security group must be emptied."
+  }
+}
