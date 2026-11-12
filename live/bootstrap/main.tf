@@ -232,6 +232,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 # The drill role
 # ---------------------------------------------------------------------------------------------
 resource "aws_iam_role" "drill" {
+  #checkov:skip=CKV_AWS_393:False positive. The rule only recognises the subject form repo:<owner>/<repo>:..., but GitHub sends this repository's subject with numeric owner and repository IDs (repo:<owner>@<id>/<repo>@<id>:environment:aws-live, seen in CloudTrail on 2026-11-12). The condition is still one exact StringEquals on repository and environment, plus the audience. See live/bootstrap/README.md.
   name                 = local.role_name
   description          = "Assumed only by the ${var.github_environment} environment of ${var.github_repository} to apply and destroy live drill stacks."
   assume_role_policy   = jsonencode(local.trust_policy)
