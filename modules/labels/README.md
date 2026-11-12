@@ -8,7 +8,7 @@ It creates **no AWS resources**, so it costs nothing and has nothing to destroy.
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `project` | `string` | n/a (required) | Short project name, 2-20 chars, lowercase letters/digits/hyphens, starts with a letter. |
-| `environment` | `string` | n/a (required) | One of `dev`, `staging`, `prod`. |
+| `environment` | `string` | n/a (required) | One of `dev`, `staging`, `prod`, `live` (live-drill stacks). |
 | `owner` | `string` | n/a (required) | Team or person responsible. No email addresses. |
 | `components` | `set(string)` | `[]` | Component names to build full names for (`vpc`, `flow-logs`, ...). |
 | `extra_tags` | `map(string)` | `{}` | Extra tags. Cannot override the standard four. Keys starting `aws:` are rejected. |

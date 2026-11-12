@@ -15,7 +15,7 @@ two or three availability zones (AZs, separate data centers in one region). Name
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `project` | `string` | n/a (required) | Passed to `labels`. |
-| `environment` | `string` | n/a (required) | `dev`, `staging` or `prod`. |
+| `environment` | `string` | n/a (required) | `dev`, `staging`, `prod` or `live`. |
 | `owner` | `string` | n/a (required) | Owner tag value. |
 | `vpc_cidr` | `string` | `"10.0.0.0/16"` | VPC range, written in network form, `/16` to `/22`. |
 | `az_count` | `number` | `3` | `2` or `3` AZs. |

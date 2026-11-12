@@ -4,7 +4,7 @@ variable "project" {
 }
 
 variable "environment" {
-  description = "Deployment environment: dev, staging or prod. Validated by the labels module."
+  description = "Deployment environment: dev, staging, prod or live. Validated by the labels module."
   type        = string
 }
 

@@ -22,7 +22,7 @@ Locking uses S3 native lock files, so **no DynamoDB table** is created
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `project` | `string` | n/a (required) | Passed to [labels](../labels/). |
-| `environment` | `string` | n/a (required) | `dev`, `staging` or `prod`. |
+| `environment` | `string` | n/a (required) | `dev`, `staging`, `prod` or `live`. |
 | `owner` | `string` | n/a (required) | Team or alias, never an email. |
 | `noncurrent_version_expiration_days` | `number` | `90` | Days before an old state version is deleted. Minimum 7. |
 | `kms_deletion_window_in_days` | `number` | `30` | KMS key deletion waiting period, 7-30. |
