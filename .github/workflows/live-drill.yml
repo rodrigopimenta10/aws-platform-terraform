@@ -1,0 +1,257 @@
+# Live drill: apply one live/stacks/<stack> root module into the real AWS account, keep it up for a
+# screenshot window, then destroy it and prove nothing is left.
+#
+# Started only by Rodrigo (`/live-drill <stack>` in local Claude Code, or the Actions tab). Both jobs use
+# the aws-live environment, so each waits for his approval, and only that environment's OIDC token can
+# assume the platform-live-drill role (live/bootstrap). The daily routine never dispatches or approves it.
+#
+# This repo is public and so are these logs: the account ID is masked right after the role is assumed,
+# and the role ARN and state bucket name (which contain it) are environment secrets, never variables.
+name: live-drill
+run-name: live drill ${{ inputs.stack }} (hold ${{ inputs.hold_minutes }} min)
+
+on:
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: Stack in live/stacks/ to apply, hold, then destroy
+        type: choice
+        required: true
+        # Must match the folders in live/stacks/ (scripts/check.sh fails otherwise).
+        options:
+          - vpc
+      hold_minutes:
+        description: Minutes to keep the stack up after the destroy job is approved
+        type: choice
+        required: true
+        default: "30"
+        options:
+          - "15"
+          - "30"
+          - "60"
+
+permissions:
+  id-token: write # request the GitHub OIDC token that AWS exchanges for role credentials
+  contents: read
+
+concurrency:
+  group: live-${{ inputs.stack }}
+  cancel-in-progress: false
+
+env:
+  STACK: ${{ inputs.stack }}
+  STACK_DIR: live/stacks/${{ inputs.stack }}
+  HOLD_MINUTES: ${{ inputs.hold_minutes }}
+  AWS_REGION: ${{ vars.AWS_LIVE_REGION }}
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: aws-live
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the environment is configured
+        env:
+          ROLE: ${{ secrets.AWS_LIVE_ROLE_ARN }}
+          BUCKET: ${{ secrets.AWS_LIVE_STATE_BUCKET }}
+        run: |
+          missing=""
+          [ -n "$ROLE" ] || missing="$missing AWS_LIVE_ROLE_ARN (aws-live secret)"
+          [ -n "$BUCKET" ] || missing="$missing AWS_LIVE_STATE_BUCKET (aws-live secret)"
+          [ -n "$AWS_REGION" ] || missing="$missing AWS_LIVE_REGION (repository variable)"
+          if [ -n "$missing" ]; then echo "::error::Not configured:$missing. See live/bootstrap/README.md."; exit 1; fi
+
+      - name: Read the pinned Terraform version
+        id: versions
+        run: echo "terraform=$(awk '$1 == "terraform" {print $2}' .tool-versions)" >> "$GITHUB_OUTPUT"
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.versions.outputs.terraform }}
+          terraform_wrapper: false
+
+      - name: Assume the drill role (OIDC, 1 hour)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_LIVE_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_LIVE_REGION }}
+          role-session-name: live-drill-${{ github.run_id }}-apply
+          role-duration-seconds: 3600
+          mask-aws-account-id: true
+
+      - name: Mask the account ID
+        run: |
+          account="$(aws sts get-caller-identity --query Account --output text)"
+          echo "::add-mask::$account"
+
+      - name: terraform init
+        env:
+          STATE_BUCKET: ${{ secrets.AWS_LIVE_STATE_BUCKET }}
+        run: >-
+          terraform -chdir="$STACK_DIR" init -input=false
+          -backend-config="bucket=$STATE_BUCKET"
+          -backend-config="key=live/$STACK/terraform.tfstate"
+          -backend-config="region=$AWS_REGION"
+          -backend-config="use_lockfile=true"
+
+      - name: terraform plan
+        run: terraform -chdir="$STACK_DIR" plan -input=false -out=drill.tfplan -var "region=$AWS_REGION"
+
+      - name: terraform apply
+        id: apply
+        run: |
+          start=$(date +%s)
+          terraform -chdir="$STACK_DIR" apply -input=false drill.tfplan
+          echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
+
+      - name: Collect evidence (read-only describe calls)
+        env:
+          APPLY_SECONDS: ${{ steps.apply.outputs.seconds }}
+        run: |
+          live/evidence.sh "$STACK" "evidence/$STACK"
+          jq -n --arg sha "$GITHUB_SHA" --arg stack "$STACK" --argjson apply "$APPLY_SECONDS" \
+            --argjson hold "$HOLD_MINUTES" --arg run "$GITHUB_RUN_ID" \
+            '{stack: $stack, commit: $sha, run_id: $run, apply_seconds: $apply, hold_minutes: $hold}' \
+            > "evidence/$STACK/timing.json"
+          live/summary.sh "$STACK" "$HOLD_MINUTES" "$APPLY_SECONDS" > "evidence/$STACK/summary.md"
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-evidence-${{ inputs.stack }}-${{ github.run_id }}
+          path: evidence/${{ inputs.stack }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Job summary
+        run: cat "evidence/$STACK/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Apply failed
+        if: failure()
+        run: |
+          {
+            echo "## Live drill: \`$STACK\` apply failed"
+            echo
+            echo "The destroy job runs anyway (approve it) and removes whatever was created, without waiting for the hold."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  destroy:
+    needs: apply
+    # Runs whatever happened to apply (failed, cancelled or rejected), so a half-applied stack is cleaned up.
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: aws-live
+    steps:
+      # The hold comes first so the one-hour role session starts after it and covers the whole destroy.
+      # No hold when apply did not succeed: there is nothing to look at, only something to clean up.
+      - name: Hold for screenshots
+        if: needs.apply.result == 'success'
+        run: |
+          echo "Holding ${HOLD_MINUTES} minutes; destroy starts at $(date -u -d "+${HOLD_MINUTES} minutes" '+%H:%M UTC')."
+          sleep $(( HOLD_MINUTES * 60 ))
+
+      - uses: actions/checkout@v5
+
+      - name: Read the pinned Terraform version
+        id: versions
+        run: echo "terraform=$(awk '$1 == "terraform" {print $2}' .tool-versions)" >> "$GITHUB_OUTPUT"
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.versions.outputs.terraform }}
+          terraform_wrapper: false
+
+      - name: Assume the drill role (OIDC, 1 hour)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_LIVE_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_LIVE_REGION }}
+          role-session-name: live-drill-${{ github.run_id }}-destroy
+          role-duration-seconds: 3600
+          mask-aws-account-id: true
+
+      - name: Mask the account ID
+        run: |
+          account="$(aws sts get-caller-identity --query Account --output text)"
+          echo "::add-mask::$account"
+
+      - name: terraform init
+        env:
+          STATE_BUCKET: ${{ secrets.AWS_LIVE_STATE_BUCKET }}
+        run: >-
+          terraform -chdir="$STACK_DIR" init -input=false
+          -backend-config="bucket=$STATE_BUCKET"
+          -backend-config="key=live/$STACK/terraform.tfstate"
+          -backend-config="region=$AWS_REGION"
+          -backend-config="use_lockfile=true"
+
+      - name: terraform destroy
+        id: destroy
+        run: |
+          start=$(date +%s)
+          terraform -chdir="$STACK_DIR" destroy -auto-approve -input=false -var "region=$AWS_REGION"
+          echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
+
+      - name: Verify nothing is left
+        run: |
+          left="$(terraform -chdir="$STACK_DIR" state list)"
+          if [ -n "$left" ]; then
+            echo "::error::Terraform state still lists resources after destroy:"
+            echo "$left"
+            exit 1
+          fi
+          echo "state: empty"
+          live/verify-destroyed.sh "$STACK"
+
+      - name: Record the result
+        if: always()
+        env:
+          DESTROY_OUTCOME: ${{ steps.destroy.outcome }}
+          DESTROY_SECONDS: ${{ steps.destroy.outputs.seconds }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "destroy/$STACK"
+          verified=false
+          [ "$JOB_STATUS" = "success" ] && verified=true
+          jq -n --arg stack "$STACK" --arg run "$GITHUB_RUN_ID" --arg outcome "$DESTROY_OUTCOME" \
+            --arg seconds "${DESTROY_SECONDS:-}" --argjson verified "$verified" \
+            '{stack: $stack, run_id: $run, destroy_outcome: $outcome, destroy_seconds: ($seconds | tonumber? // null), destroy_verified: $verified}' \
+            > "destroy/$STACK/destroy.json"
+          if [ "$verified" = true ]; then
+            {
+              echo "## Live drill: \`$STACK\` destroyed"
+              echo
+              echo "- Destroy took ${DESTROY_SECONDS}s."
+              echo "- Terraform state is empty and nothing tagged \`live-stack=$STACK\` remains. **Destroy verified.**"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error::Destroy of $STACK failed or left resources behind. Resources may still be running and billing."
+            {
+              echo "## Live drill: \`$STACK\` DESTROY FAILED"
+              echo
+              echo "Resources may still be running. Re-run this job, or destroy by hand as an admin:"
+              echo
+              echo '```bash'
+              echo "cd live/stacks/$STACK"
+              echo 'terraform init -backend-config="bucket=<state bucket>" \'
+              echo "  -backend-config=\"key=live/$STACK/terraform.tfstate\" \\"
+              echo "  -backend-config=\"region=$AWS_REGION\" -backend-config=\"use_lockfile=true\""
+              echo "terraform destroy -var \"region=$AWS_REGION\""
+              echo "AWS_REGION=$AWS_REGION ../../verify-destroyed.sh $STACK"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the destroy result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-destroy-${{ inputs.stack }}-${{ github.run_id }}
+          path: destroy/${{ inputs.stack }}
+          retention-days: 30
+          if-no-files-found: warn
