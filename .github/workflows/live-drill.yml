@@ -332,14 +332,16 @@ jobs:
           git config user.email "11894505+rodrigopimenta10@users.noreply.github.com"
           export GIT_COMMITTER_NAME="github-actions[bot]"
           export GIT_COMMITTER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
-          for d in artifacts/live-*; do
-            [ -f "$d/result.json" ] || continue
-            stack="$(jq -r .stack "$d/result.json")"
-            live/report.sh "$stack" "$d"
+          # One artifact unpacks straight into artifacts/, several into artifacts/<name>/: find them either way.
+          find artifacts -maxdepth 3 | sed 's/^/  /'
+          dirs="$(find artifacts -name result.json -printf '%h\n' | sort)"
+          [ -n "$dirs" ] || { echo "::error::no drill output found in the artifacts"; exit 1; }
+          for d in $dirs; do
+            live/report.sh "$(jq -r .stack "$d/result.json")" "$d"
           done
           git add docs/live
-          git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
-          stacks="$(for d in artifacts/live-*; do jq -r .stack "$d/result.json" 2>/dev/null; done | paste -sd, -)"
+          git diff --cached --quiet && { echo "::error::report written but nothing to commit"; exit 1; }
+          stacks="$(for d in $dirs; do jq -r .stack "$d/result.json"; done | paste -sd, -)"
           git commit -q -m "docs(live): drill report for ${stacks} $(TZ=America/New_York date +%F)" \
             -m "Applied, screenshotted and destroyed by live-drill.yml run $GITHUB_RUN_ID." \
             -m "Co-Authored-By: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"

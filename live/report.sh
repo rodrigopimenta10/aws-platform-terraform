@@ -50,7 +50,7 @@ verified="$(r '.destroy_verified')"
 {
   echo "# Live drill: \`$stack\`, $date"
   echo
-  echo "Applied to the real AWS account by \`.github/workflows/live-drill.yml\` after CI passed on \`main\`,"
+  echo "Applied to the real AWS account by \`.github/workflows/live-drill.yml\` ($(r .reason)),"
   echo "screenshotted in a headless browser signed in as the drill role, then destroyed. No human step."
   echo
   echo "| | |"
