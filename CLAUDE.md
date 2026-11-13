@@ -2,15 +2,20 @@
 
 This repo is a learning portfolio: a production-style AWS platform in Terraform, built one roadmap item
 at a time by a daily Claude Code cloud run and reviewed by Rodrigo. Agents never apply it to a real AWS
-account **except** through the live drill (`.github/workflows/live-drill.yml`), which only runs when
-Rodrigo starts it and approves the `aws-live` environment. The daily routine never runs it.
-Everything else is tested offline: mock providers and a local Moto server.
+account themselves. The only real applies are **live drills** (`.github/workflows/live-drill.yml`): after
+CI passes on a push to `main`, GitHub Actions applies each `live/stacks/<stack>` the push changed, takes
+evidence and console screenshots, destroys it and commits the report to `docs/live/`. No agent holds AWS
+credentials; the workflow gets one-hour credentials through GitHub OIDC, inside limits set in
+`live/bootstrap` (see `live/README.md`). Everything else is tested offline: mock providers and Moto.
 
 ## Ground rules
 - **No real AWS.** Never configure real credentials, never run `terraform apply` outside `terraform test`
   against Moto, never add a backend that points at real S3. `scripts/check.sh` sets fake credentials.
   The only exception is the live drill above: its stacks under `live/stacks/` carry an empty
   `backend "s3" {}` that the workflow fills at run time.
+- **The drill machinery is off-limits to agents:** `live/bootstrap/`, `live/*.sh`, `live/*.mjs`,
+  `.github/`, `scripts/check-live-stacks.sh`, `.tool-versions`. A push that changes any of them is refused
+  by the unattended drill; Rodrigo checks such changes and starts a drill by hand.
 - **No secrets in the repo.** It's public. No keys, tokens, account IDs, emails or IPs that aren't
   documentation examples (`123456789012`, `203.0.113.0/24`).
 - **Production-style, not toy.** Encryption on by default, least-privilege IAM, no `*` actions without

@@ -17,7 +17,11 @@ You are the daily builder for this repo. Read `CLAUDE.md` first and follow it. W
    (for the warm-up questions).
 6. Run `git log --since="36 hours ago" --format='%h %an %s%n%b'` and note any commits that have no
    `Co-Authored-By: Claude` trailer. Those are Rodrigo's own (usually a "try it yourself" exercise)
-   and get reviewed in today's note.
+   and get reviewed in today's note. Commits whose committer is `github-actions[bot]` are drill
+   reports (`docs(live): ...`), not Rodrigo's work.
+7. Read the newest report in `docs/live/` (the drill that ran after your last push). If its destroy is
+   not verified, or a screenshot or the apply failed because of repo code, fixing that is today's first
+   job, before the roadmap item.
 
 ## 2. Make sure main is healthy
 Run `scripts/check.sh`. If it fails on `main` before you change anything, today's job is fixing that.
@@ -33,6 +37,19 @@ code to your taste when the checks pass.
 3. Commit as you go, one commit per logical change: module code, tests, docs, ADR, wiring. The number
    of commits should follow from the work, usually 1–6. Don't pad, don't squash.
 4. Run `scripts/check.sh` before each commit when practical, and always before pushing.
+5. **Make it drillable the same day.** After you push, GitHub applies every `live/stacks/<stack>` your
+   push changed into the real account, screenshots it and destroys it (live/README.md). So when the item
+   adds or changes a module, wire it into a drill stack in the same push: the current milestone's stack
+   `live/stacks/m<N>/` (create it from `live/stacks/vpc` if it doesn't exist), plus its entries in
+   `live/screenshots.yml` (structured `steps:`; see the header there). Use the cheapest settings that
+   still prove the module works: 2 AZs, at most 1 NAT gateway, interface endpoints in at most 2 subnets,
+   EKS with 1 node group of at most 2 `t3`/`t4g` nodes, `force_destroy = true`, the shortest KMS
+   deletion window. `live/plan-gate.sh` refuses anything bigger, and the drill role only allows the
+   services listed in `live/bootstrap/main.tf`.
+   - Every `aws_iam_role` a module creates must accept a `permissions_boundary` variable (default
+     `null`), and drill stacks pass `var.permissions_boundary_arn` (the workflow sets
+     `TF_VAR_permissions_boundary_arn`). The drill role cannot create a role without that boundary.
+   - Add a note to today's learning note: what the drill will show and what it should cost.
 
 ## 4. Write today's learning note
 Create `docs/daily/YYYY-MM-DD.md` (date from `TZ=America/New_York date +%F`) using
@@ -50,12 +67,7 @@ Commit as `docs: daily note YYYY-MM-DD`.
   the whole milestone with collapsed answers, and an "Apply it for real" section: the exact commands
   for Rodrigo to apply this milestone in his own AWS account, what to look at in the console, the
   rough cost per hour, and the destroy and verify steps. You still never run those commands yourself.
-  Also add or update `live/stacks/m<N>/` (a root module that applies this milestone's modules, cheapest
-  settings, `force_destroy = true` and the shortest KMS deletion window where those exist) and its entry
-  in `live/screenshots.yml`, and point the recap's "Apply it for real" section at `/live-drill m<N>`.
-  This keeps every future milestone drillable without more setup. Add the new stack's name to the
-  `stack` choice list in `.github/workflows/live-drill.yml` too: that one list is the only part of a
-  `live-*.yml` workflow you may edit, and `scripts/check.sh` fails until the list matches `live/stacks/*`.
+  Link the milestone's latest drill report in `docs/live/`; it is the "for real" evidence.
 
 ## 5. Push
 1. `scripts/check.sh` must print `ALL CHECKS PASSED`.
@@ -65,12 +77,14 @@ Commit as `docs: daily note YYYY-MM-DD`.
    A day with no push is fine.
 
 ## Never
-- Edit `CLAUDE.md`, this file, or `docs/daily/TEMPLATE.md`. (You may fix `scripts/` or `.github/` only if
-  a check is broken by the environment, and say so in the note.)
+- Edit `CLAUDE.md`, this file, or `docs/daily/TEMPLATE.md`. (You may fix `scripts/` only if a check is
+  broken by the environment, and say so in the note.)
 - Use real AWS credentials, apply against anything but Moto, or add secrets.
 - Change past daily notes, rewrite history, force-push, or fake commit dates.
 - Work on anything outside `ROADMAP.md`. If the roadmap is finished, write a final note saying so and stop.
-- Dispatch workflows, approve deployments, or edit `live/bootstrap/` or `.github/workflows/live-*.yml`.
+- Dispatch workflows, approve deployments, or edit the drill machinery: `live/bootstrap/`, `live/*.sh`,
+  `live/*.mjs`, anything under `.github/`, `scripts/check-live-stacks.sh` or `.tool-versions`. (The drill
+  refuses pushes that touch them anyway.) Never edit `docs/live/` reports either: the workflow writes them.
 
 ## Finish
 End with a three-line summary: the item(s) done, commit count, and anything Rodrigo should look at.
