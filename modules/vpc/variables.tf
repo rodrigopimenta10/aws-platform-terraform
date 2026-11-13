@@ -83,3 +83,15 @@ variable "eks_cluster_names" {
     error_message = "Each EKS cluster name must be 1-100 characters: letters, digits, hyphens and underscores, starting with a letter or digit."
   }
 }
+
+variable "enable_nat_gateway" {
+  description = "Create NAT gateways so private subnets can reach the internet (outbound only). Set false to save money when nothing in the private tier needs egress. Isolated subnets never get NAT."
+  type        = bool
+  default     = true
+}
+
+variable "single_nat_gateway" {
+  description = "true: one NAT gateway shared by every AZ (cheaper, but an outage of its AZ cuts egress for all, and cross-AZ traffic is billed). false: one NAT gateway per AZ (highly available, costs az_count times more). Ignored when enable_nat_gateway is false. See ADR 0004."
+  type        = bool
+  default     = false
+}

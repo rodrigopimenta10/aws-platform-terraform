@@ -72,3 +72,13 @@ output "eks_subnet_ids" {
   description = "Ready-made input for an EKS cluster: private subnets for nodes and the control-plane network interfaces (the API endpoint itself is configured on the cluster)."
   value       = aws_subnet.private[*].id
 }
+
+output "nat_gateway_ids" {
+  description = "NAT gateway IDs: one per AZ, a single one when single_nat_gateway is true, or empty when NAT is disabled."
+  value       = aws_nat_gateway.this[*].id
+}
+
+output "nat_public_ips" {
+  description = "Elastic IP addresses of the NAT gateways. Give these to third parties that allow-list your outbound traffic."
+  value       = aws_eip.nat[*].public_ip
+}

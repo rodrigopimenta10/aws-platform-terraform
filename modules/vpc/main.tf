@@ -50,6 +50,9 @@ locals {
   # Tags that let EKS and the AWS Load Balancer Controller find the right subnets.
   cluster_tags = { for n in var.eks_cluster_names : "kubernetes.io/cluster/${n}" => "shared" }
 
+  # NAT strategy (ADR 0004). One NAT gateway in total, or one per AZ. nat_count is 0 when NAT is off.
+  nat_count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : var.az_count) : 0
+
   tier_tags = {
     public   = merge(local.cluster_tags, { "kubernetes.io/role/elb" = "1" })
     private  = merge(local.cluster_tags, { "kubernetes.io/role/internal-elb" = "1" })
@@ -160,7 +163,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Private: one route table PER AZ, with no internet route yet. Per-AZ tables let the NAT strategy
+# Private: one route table PER AZ. The default route to NAT is added below. Per-AZ tables let the NAT strategy
 # (roadmap M1.2) point each AZ at its own NAT gateway, or all of them at one, without restructuring.
 resource "aws_route_table" "private" {
   count = var.az_count
@@ -168,6 +171,41 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.this.id
 
   tags = { Name = "${local.name}-private-${local.azs[count.index]}" }
+}
+
+# NAT (Network Address Translation) gateway: lets private subnets start connections to the internet
+# (package downloads, AWS APIs) without being reachable from it. It must sit in a PUBLIC subnet and needs
+# an Elastic IP (a fixed public address). It costs money for every hour it exists, see ADR 0004.
+resource "aws_eip" "nat" {
+  count = local.nat_count
+
+  domain = "vpc"
+
+  tags = { Name = "${local.name}-nat-${local.azs[count.index]}" }
+
+  depends_on = [aws_internet_gateway.this]
+}
+
+resource "aws_nat_gateway" "this" {
+  count = local.nat_count
+
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
+
+  tags = { Name = "${local.name}-${local.azs[count.index]}" }
+
+  # The NAT gateway needs the internet gateway in place to reach the internet.
+  depends_on = [aws_internet_gateway.this]
+}
+
+# Each private route table sends internet-bound traffic to a NAT gateway. With one NAT everything shares
+# index 0. With one per AZ, AZ i uses NAT i, so an AZ outage cannot cut off the other AZs' egress.
+resource "aws_route" "private_nat" {
+  count = var.enable_nat_gateway ? var.az_count : 0
+
+  route_table_id         = aws_route_table.private[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.this[var.single_nat_gateway ? 0 : count.index].id
 }
 
 resource "aws_route_table_association" "private" {

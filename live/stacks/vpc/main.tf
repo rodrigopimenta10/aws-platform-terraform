@@ -1,7 +1,8 @@
 # Live-drill stack "vpc": applies modules/vpc for real, for the length of a drill, then gets destroyed.
 # Started only by .github/workflows/live-drill.yml after Rodrigo approves the aws-live environment.
 #
-# Cheapest settings: 2 AZs instead of 3, and no NAT gateway (modules/vpc has none until M1.2). A VPC,
+# Cheapest settings: 2 AZs instead of 3, and no NAT gateway (enable_nat_gateway = false, because a NAT
+# gateway bills every hour). A VPC,
 # its subnets, route tables, internet gateway and an emptied default security group have no hourly charge,
 # so a drill of this stack costs nothing.
 
@@ -35,4 +36,7 @@ module "vpc" {
   environment = "live"
   owner       = var.owner
   az_count    = 2
+
+  # A NAT gateway costs money per hour; this drill is meant to be free.
+  enable_nat_gateway = false
 }

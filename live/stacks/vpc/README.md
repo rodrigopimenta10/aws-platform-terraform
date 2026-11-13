@@ -9,7 +9,7 @@ and isolated in each of 2 AZs), an internet gateway, four route tables (one publ
 to the gateway, one private per AZ, one isolated) with six subnet associations, and the VPC's default
 security group emptied of rules. 20 resources in Terraform state.
 
-**Cost: $0.** There is no NAT gateway (modules/vpc has none until M1.2) and no KMS key. VPCs, subnets, route
+**Cost: $0.** NAT is switched off (`enable_nat_gateway = false`, a NAT gateway bills every hour) and there is no KMS key. VPCs, subnets, route
 tables, internet gateways and security groups have no hourly charge.
 
 ## Inputs
