@@ -100,6 +100,15 @@ const HEADER = [
   "[data-testid='awsc-nav-account-menu-button']",
 ];
 
+// What the page is, without anything identifying: title, path (no query or fragment values) and a little
+// visible text, with the account ID removed. Logged when a capture fails.
+async function describe(page) {
+  const u = new URL(page.url());
+  const text = await page.evaluate(() => document.body?.innerText ?? "").catch(() => "");
+  const clean = (s) => s.split(ACCOUNT_ID).join("<ACCOUNT_ID>").replace(/\s+/g, " ").slice(0, 160);
+  return `title="${clean(await page.title())}" at ${u.host}${u.pathname} text="${clean(text)}"`;
+}
+
 async function steps(page, entry) {
   for (const step of entry.steps ?? []) {
     if (step.tab) await page.getByRole("tab", { name: step.tab, exact: false }).first().click();
@@ -135,6 +144,9 @@ const results = [];
 let failed = 0;
 try {
   await page.goto(await signinUrl(fill(entries[0].url)), { waitUntil: "domcontentloaded", timeout: 90_000 });
+  // The federation endpoint redirects to the console once the session is accepted.
+  await page.waitForURL(/console\.aws\.amazon\.com/, { timeout: 60_000 }).catch(() => {});
+  console.log(`console-shots: after sign-in, ${await describe(page)}`);
   for (const entry of entries) {
     const file = join(outDir, `${entry.name}.png`);
     try {
@@ -152,7 +164,8 @@ try {
     } catch (e) {
       failed += 1;
       results.push({ name: entry.name, proves: entry.proves, ok: false, error: String(e.message ?? e).slice(0, 300) });
-      console.log(`console-shots: ${entry.name} FAILED: ${String(e.message ?? e).slice(0, 300)}`);
+      console.log(`console-shots: ${entry.name} FAILED: ${String(e.message ?? e).split("\n")[0].slice(0, 200)}`);
+      console.log(`console-shots:   page was ${await describe(page)}`);
     }
   }
 } finally {
