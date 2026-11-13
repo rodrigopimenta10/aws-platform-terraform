@@ -1,0 +1,7 @@
+{
+  "stack": "vpc",
+  "run_id": "43333466143",
+  "destroy_outcome": "success",
+  "destroy_seconds": 11,
+  "destroy_verified": false
+}
