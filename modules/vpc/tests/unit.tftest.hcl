@@ -228,3 +228,75 @@ run "rejects_bad_cluster_name" {
 
   expect_failures = [var.eks_cluster_names]
 }
+
+run "nat_per_az_by_default" {
+  command = plan
+
+  assert {
+    condition     = length(aws_nat_gateway.this) == 3 && length(aws_eip.nat) == 3 && length(aws_route.private_nat) == 3
+    error_message = "By default there is one NAT gateway, one Elastic IP and one private default route per AZ."
+  }
+}
+
+run "single_nat_gateway" {
+  command = plan
+
+  variables {
+    single_nat_gateway = true
+  }
+
+  assert {
+    condition     = length(aws_nat_gateway.this) == 1 && length(aws_eip.nat) == 1
+    error_message = "single_nat_gateway should create exactly one NAT gateway and one Elastic IP."
+  }
+
+  assert {
+    condition     = length(aws_route.private_nat) == 3
+    error_message = "Every private route table still needs its default route, all pointing at the one NAT."
+  }
+}
+
+run "two_az_nat_per_az" {
+  command = plan
+
+  variables {
+    az_count = 2
+  }
+
+  assert {
+    condition     = length(aws_nat_gateway.this) == 2 && length(aws_route.private_nat) == 2
+    error_message = "Two AZs should get two NAT gateways."
+  }
+}
+
+run "nat_disabled" {
+  command = plan
+
+  variables {
+    enable_nat_gateway = false
+  }
+
+  assert {
+    condition     = length(aws_nat_gateway.this) == 0 && length(aws_eip.nat) == 0 && length(aws_route.private_nat) == 0
+    error_message = "No NAT resources or private default routes when enable_nat_gateway is false."
+  }
+
+  assert {
+    condition     = length(output.nat_gateway_ids) == 0
+    error_message = "nat_gateway_ids should be empty when NAT is disabled."
+  }
+}
+
+run "single_nat_ignored_when_nat_disabled" {
+  command = plan
+
+  variables {
+    enable_nat_gateway = false
+    single_nat_gateway = true
+  }
+
+  assert {
+    condition     = length(aws_nat_gateway.this) == 0
+    error_message = "single_nat_gateway must not create anything when NAT is disabled."
+  }
+}

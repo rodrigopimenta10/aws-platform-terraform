@@ -63,3 +63,53 @@ run "creates_three_tier_network" {
     error_message = "The default security group must be emptied."
   }
 }
+
+run "nat_per_az_routes_each_az_to_its_own_nat" {
+  command = apply
+
+  assert {
+    condition     = length(output.nat_gateway_ids) == 3 && length(distinct(output.nat_gateway_ids)) == 3
+    error_message = "Three distinct NAT gateways expected by default."
+  }
+
+  assert {
+    condition     = aws_nat_gateway.this[1].subnet_id == aws_subnet.public[1].id
+    error_message = "Each NAT gateway must live in the public subnet of its own AZ."
+  }
+
+  assert {
+    condition     = aws_route.private_nat[2].nat_gateway_id == aws_nat_gateway.this[2].id && aws_route.private_nat[0].nat_gateway_id != aws_route.private_nat[1].nat_gateway_id
+    error_message = "Each private route table should point at the NAT gateway of its own AZ."
+  }
+}
+
+run "single_nat_shared_by_all_private_route_tables" {
+  command = apply
+
+  variables {
+    single_nat_gateway = true
+  }
+
+  assert {
+    condition     = length(output.nat_gateway_ids) == 1 && length(output.nat_public_ips) == 1
+    error_message = "One NAT gateway and one Elastic IP expected."
+  }
+
+  assert {
+    condition     = alltrue([for r in aws_route.private_nat : r.nat_gateway_id == aws_nat_gateway.this[0].id])
+    error_message = "All private route tables should share the single NAT gateway."
+  }
+}
+
+run "no_nat_means_no_private_egress_route" {
+  command = apply
+
+  variables {
+    enable_nat_gateway = false
+  }
+
+  assert {
+    condition     = length(output.nat_gateway_ids) == 0 && length(aws_route.private_nat) == 0
+    error_message = "No NAT gateway or private default route expected when NAT is disabled."
+  }
+}
