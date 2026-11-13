@@ -54,6 +54,9 @@ fi
 trap '[ -n "$moto_pid" ] && kill "$moto_pid" 2>/dev/null || true' EXIT
 
 for d in "${dirs[@]}"; do
+  # A private data dir per module, so a real backend initialised by hand (live/bootstrap after its one-time
+  # apply) can never make the offline checks talk to AWS. Providers still come from the plugin cache.
+  export TF_DATA_DIR="${TMPDIR:-/tmp}/aws-platform-check/${d//\//_}"
   step "$d: init + validate"
   (cd "$d" && terraform init -backend=false -input=false -no-color >/dev/null && terraform validate -no-color) || { fail=1; continue; }
   if compgen -G "$d/tests/*.tftest.hcl" >/dev/null; then
