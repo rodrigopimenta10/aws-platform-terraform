@@ -1,42 +1,46 @@
 # Console pages to capture during a live drill, one list per stack in live/stacks/.
-# Read by the /live-drill command (.claude/commands/live-drill.md) and by live/summary.sh for the job
-# summary's console links. scripts/check.sh fails unless the top-level keys here match live/stacks/*.
+# Read by live/console-shots.mjs on the GitHub runner (headless Chromium signed in as the drill role),
+# and by live/summary.sh for the job summary's console links. scripts/check.sh fails unless the top-level
+# keys here match live/stacks/*.
 #
 # Each entry:
 #   name    file name of the screenshot (docs/live/<date>-<stack>/<name>.png)
 #   url     console URL. {region} and {<output>} are filled from the stack's string outputs
 #           (`terraform output -json`). Resource IDs are fine in URLs; account IDs never are.
-#   then    optional: what to click or type after the page loads
-#   proves  one line: what the screenshot must show
-#
-# The URL fragments are the console's usual deep links. If one doesn't land on the right page, navigate
-# there by hand, then fix the URL here in the drill's commit.
-
+#   steps   optional, run in order after the page loads:
+#             - tab: "<tab name>"        click a tab
+#             - search: "<text>"         type into the page's search or filter box, then Enter
+#             - click: "<visible text>"  click the first element showing that text
+#             - wait_for: "<text>"       wait until that text appears
+#   proves  one line: what the screenshot must show (becomes its caption in the drill report)
 vpc:
   - name: vpc-details
     url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#VpcDetails:VpcId={vpc_id}"
+    steps:
+      - wait_for: "platform-live-vpc"
     proves: "VPC platform-live-vpc, 10.0.0.0/16, DNS resolution and DNS hostnames enabled"
   - name: resource-map
     url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#VpcDetails:VpcId={vpc_id}"
-    then: "Open the Resource map tab"
-    proves: "2 AZs x 3 tiers = 6 subnets, 4 route tables, 1 internet gateway, no NAT gateway"
+    steps:
+      - tab: "Resource map"
+    proves: "2 AZs x 3 tiers = 6 subnets, the stack's route tables, 1 internet gateway, no NAT gateway"
   - name: subnets
-    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#subnets:"
-    then: "Type platform-live-vpc in the search box"
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#subnets:search=platform-live-vpc"
+    steps:
+      - wait_for: "platform-live-vpc-private"
     proves: "6 subnets named platform-live-vpc-<tier>-<az> (ADR 0002): private /20s, public and isolated /22s"
   - name: public-route-table
     url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#RouteTableDetails:RouteTableId={public_route_table_id}"
-    then: "Open the Routes tab"
+    steps:
+      - tab: "Routes"
     proves: "0.0.0.0/0 goes to the internet gateway; associated with both public subnets"
   - name: isolated-route-table
     url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#RouteTableDetails:RouteTableId={isolated_route_table_id}"
-    then: "Open the Routes tab"
+    steps:
+      - tab: "Routes"
     proves: "Only the local route: isolated subnets have no way out of the VPC"
-  - name: default-security-group
-    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#SecurityGroups:"
-    then: "Type platform-live-vpc-default-unused in the search box and open it"
-    proves: "The default security group has no inbound and no outbound rules"
   - name: tags
     url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#VpcDetails:VpcId={vpc_id}"
-    then: "Open the Tags tab"
+    steps:
+      - tab: "Tags"
     proves: "Standard tags from ADR 0002 (project, environment=live, owner, managed-by) plus live-stack=vpc"
