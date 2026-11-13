@@ -151,12 +151,26 @@ async function steps(page, entry) {
   }
 }
 
+// A new console session shows a welcome tour ("Service menu ... Next") and the odd banner. Close what can be
+// closed; step a tour through with Next until it ends. Bounded, and never an error.
 async function dismissPopups(page) {
-  for (const f of page.frames()) {
-    for (const name of ["Dismiss", "Close", "Got it", "Not now", "Accept all"]) {
-      const b = f.getByRole("button", { name, exact: true });
-      if (await b.count().catch(() => 0)) await b.first().click({ timeout: 2000 }).catch(() => {});
+  const finish = ["Skip tour", "End tour", "Skip", "Done", "Finish", "Got it", "Dismiss", "Close", "Not now", "Accept all"];
+  for (let round = 0; round < 8; round++) {
+    let clicked = false;
+    await page.keyboard.press("Escape").catch(() => {});
+    for (const f of page.frames()) {
+      for (const name of [...finish, "Next"]) {
+        const b = f.getByRole("button", { name, exact: true });
+        if ((await b.count().catch(() => 0)) && (await b.first().isVisible().catch(() => false))) {
+          await b.first().click({ timeout: 2000 }).catch(() => {});
+          clicked = true;
+          break;
+        }
+      }
+      if (clicked) break;
     }
+    if (!clicked) return;
+    await page.waitForTimeout(700);
   }
 }
 
@@ -185,6 +199,7 @@ try {
       await page.waitForTimeout(5000); // console tables fill in after the network settles
       await dismissPopups(page);
       await steps(page, entry);
+      await dismissPopups(page);
       const left = await redact(page);
       if (left > 0) throw new Error(`account ID still visible ${left} time(s) after redaction`);
       const mask = HEADER.map((s) => page.locator(s));
