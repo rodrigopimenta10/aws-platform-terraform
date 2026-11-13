@@ -1,22 +1,15 @@
-# Backstop for the live drill: once a day, destroy any live/stacks/<stack> whose Terraform state is not
-# empty (a drill whose own destroy failed or never ran). The drill's destroy job is the main path; this
-# catches what slips through.
-#
-# It uses the aws-live environment like the drill, so every run waits for Rodrigo's approval: an agent can
-# never reach AWS on its own, even to clean up. If nothing is left, approving does no harm and rejecting is
-# fine too; a newer daily run replaces a pending one. The AWS budget emails are the alarm that something
-# is running; this workflow is how it gets removed.
+# Backstop for the live drill: every hour, destroy any live/stacks/<stack> whose Terraform state is not
+# empty (a drill whose own destroy failed, or a runner that died mid-drill). Unattended, like the drill.
+# The drill's in-job destroy is the main path; this catches what slips through within the hour.
 name: live-reaper
 
 on:
   schedule:
-    - cron: "0 13 * * *" # 13:00 UTC daily
+    - cron: "23 * * * *" # hourly, off the top of the hour when GitHub's scheduler is busiest
   workflow_dispatch:
 
 permissions:
-  id-token: write # request the GitHub OIDC token that AWS exchanges for role credentials
   contents: read
-  actions: read # list live-drill runs, so a drill in its screenshot window is left alone
 
 concurrency:
   group: live-reaper
@@ -32,10 +25,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     environment: aws-live
+    permissions:
+      id-token: write # the GitHub OIDC token AWS exchanges for the drill role's credentials
+      contents: read
+      actions: read # list live-drill runs, so a drill in progress is left alone
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: main
 
-      # A drill that is still running owns its stack: its destroy job is waiting or holding.
+      # A drill that is still running owns its stack.
       - name: Skip while a live drill is running
         id: drills
         env:
@@ -44,10 +43,7 @@ jobs:
           active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow live-drill.yml --limit 20 \
             --json status --jq '[.[] | select(.status != "completed")] | length')"
           echo "active=$active" >> "$GITHUB_OUTPUT"
-          if [ "$active" != "0" ]; then
-            echo "::notice::$active live drill run(s) still in progress; their destroy jobs are in charge. Nothing reaped."
-            echo "Skipped: a live drill is still running." >> "$GITHUB_STEP_SUMMARY"
-          fi
+          [ "$active" = 0 ] || echo "Skipped: a live drill is still running." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Read the pinned Terraform version
         if: steps.drills.outputs.active == '0'
@@ -75,6 +71,7 @@ jobs:
         run: |
           account="$(aws sts get-caller-identity --query Account --output text)"
           echo "::add-mask::$account"
+          echo "TF_VAR_permissions_boundary_arn=arn:aws:iam::$account:policy/platform-live-drill-boundary" >> "$GITHUB_ENV"
 
       - name: Destroy every stack whose state is not empty
         if: steps.drills.outputs.active == '0'
@@ -91,7 +88,6 @@ jobs:
               -backend-config="region=$AWS_REGION" \
               -backend-config="use_lockfile=true" >/dev/null
             if [ -z "$(terraform -chdir="$dir" state list)" ]; then
-              echo "$stack: state empty, nothing to do"
               echo "- \`$stack\`: empty" >> "$GITHUB_STEP_SUMMARY"
               continue
             fi

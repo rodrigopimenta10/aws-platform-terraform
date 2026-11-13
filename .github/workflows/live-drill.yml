@@ -1,69 +1,167 @@
-# Live drill: apply one live/stacks/<stack> root module into the real AWS account, keep it up for a
-# screenshot window, then destroy it and prove nothing is left.
+# Live drill: apply live/stacks/<stack> into the real AWS account, capture evidence and console screenshots,
+# destroy it, prove nothing is left, and commit the report to main. Unattended.
 #
-# Started only by Rodrigo (`/live-drill <stack>` in local Claude Code, or the Actions tab). Both jobs use
-# the aws-live environment, so each waits for his approval, and only that environment's OIDC token can
-# assume the platform-live-drill role (live/bootstrap). The daily routine never dispatches or approves it.
+# When: after CI passes on a push to main (normally the daily routine's push), for every stack whose files
+# or modules changed since the last successful drill. Or by hand from the Actions tab.
 #
-# This repo is public and so are these logs: the account ID is masked right after the role is assumed,
-# and the role ARN and state bucket name (which contain it) are environment secrets, never variables.
+# Why this is safe without a human click (live/README.md has the full list):
+#   - only pushes to this repo's main can trigger it (fork and pull-request runs are refused below);
+#   - pushes that touch the drill machinery itself (protected paths) are refused, so a bad commit can't
+#     loosen the limits it runs under; those need Rodrigo to start a drill by hand;
+#   - live/plan-gate.sh refuses plans with forbidden resource types, big instances, many nodes or NATs;
+#   - the role (live/bootstrap) is boxed in by IAM denies and a permissions boundary that every role it
+#     creates must carry, an AWS budget action that cuts it off at the spend limit, and a 5 vCPU account quota;
+#   - destroy runs in the same job whatever happened before it, and live-reaper.yml sweeps hourly.
+#
+# This repo is public and so are these logs: the account ID is masked as soon as the role is assumed, and
+# the role ARN and state bucket name (which contain it) are environment secrets, never variables.
 name: live-drill
-run-name: live drill ${{ inputs.stack }} (hold ${{ inputs.hold_minutes }} min)
+run-name: >-
+  live drill ${{ github.event_name == 'workflow_dispatch' && inputs.stack || 'after CI' }}
 
 on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       stack:
-        description: Stack in live/stacks/ to apply, hold, then destroy
-        type: choice
+        description: "Stack in live/stacks/ to drill, or 'changed' (since the last drill) or 'all'"
+        type: string
         required: true
-        # Must match the folders in live/stacks/ (scripts/check.sh fails otherwise).
-        options:
-          - vpc
+        default: changed
       hold_minutes:
-        description: Minutes to keep the stack up after the destroy job is approved
+        description: Extra minutes to keep the stack up before destroy (for looking at it yourself)
         type: choice
         required: true
-        default: "30"
-        options:
-          - "15"
-          - "30"
-          - "60"
+        default: "0"
+        options: ["0", "15", "30", "60"]
 
 permissions:
-  id-token: write # request the GitHub OIDC token that AWS exchanges for role credentials
   contents: read
 
+# One drill at a time in the whole account: bounds cost and keeps the reaper's view simple.
 concurrency:
-  group: live-${{ inputs.stack }}
+  group: live-drill
   cancel-in-progress: false
 
 env:
-  STACK: ${{ inputs.stack }}
-  STACK_DIR: live/stacks/${{ inputs.stack }}
-  HOLD_MINUTES: ${{ inputs.hold_minutes }}
   AWS_REGION: ${{ vars.AWS_LIVE_REGION }}
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
+  # Paths an unattended drill refuses to run with: the drill machinery and its limits.
+  PROTECTED: '^(live/bootstrap/|live/[^/]+\.(sh|mjs)$|\.github/|scripts/check-live-stacks\.sh$|\.tool-versions$)'
 
 jobs:
-  apply:
+  select:
+    name: Pick stacks
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      stacks: ${{ steps.pick.outputs.stacks }}
+      sha: ${{ steps.pick.outputs.sha }}
+      reason: ${{ steps.pick.outputs.reason }}
+    steps:
+      - name: Refuse anything but a push to this repository's main
+        if: github.event_name == 'workflow_run'
+        env:
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          # workflow_run's branch filter alone would also match a fork's pull request from a branch named main.
+          if [ "$CONCLUSION" != success ] || [ "$EVENT" != push ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [ "$HEAD_BRANCH" != main ]; then
+            echo "Not a successful CI run of a push to $GITHUB_REPOSITORY main ($EVENT, $HEAD_REPO, $HEAD_BRANCH, $CONCLUSION): no drill."
+            echo "skip=1" >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Pick the stacks to drill
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_STACK: ${{ inputs.stack }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          all="$(for d in live/stacks/*/; do compgen -G "$d*.tf" >/dev/null && basename "$d"; done)"
+          if [ "${skip:-0}" = 1 ]; then echo 'stacks=[]' >> "$GITHUB_OUTPUT"; exit 0; fi
+
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$INPUT_STACK" != changed ]; then
+            if [ "$INPUT_STACK" = all ]; then picked="$all"
+            elif grep -qx "$INPUT_STACK" <<<"$all"; then picked="$INPUT_STACK"
+            else echo "::error::No stack live/stacks/$INPUT_STACK"; exit 1; fi
+            reason="started by hand"
+          else
+            # Changes since the last drill that succeeded (or the previous commit, the first time).
+            last="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow live-drill.yml --status success --limit 30 \
+              --json headSha,databaseId --jq '.[].headSha' | while read -r s; do
+                git merge-base --is-ancestor "$s" "$sha" 2>/dev/null && { echo "$s"; break; }; done)"
+            base="${last:-$(git rev-parse "$sha~1")}"
+            changed="$(git diff --name-only "$base" "$sha")"
+            echo "Changed since ${base:0:12}:"; sed 's/^/  /' <<<"$changed"
+            if [ "$GITHUB_EVENT_NAME" = workflow_run ] && grep -qE "$PROTECTED" <<<"$changed"; then
+              echo "::warning::This push changes the drill machinery (protected paths). Unattended drills refuse it; start one by hand to check the change."
+              grep -E "$PROTECTED" <<<"$changed" | sed 's/^/  protected: /'
+              echo 'stacks=[]' >> "$GITHUB_OUTPUT"
+              echo "## Live drill skipped" >> "$GITHUB_STEP_SUMMARY"
+              echo "The push changes protected drill files; start a drill by hand after checking them." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            picked=""
+            for s in $all; do
+              mods="$(grep -ho 'modules/[a-z0-9_-]*' "live/stacks/$s"/*.tf | sort -u)"
+              if grep -q "^live/stacks/$s/" <<<"$changed" || grep -q "^live/screenshots.yml$" <<<"$changed" \
+                 || { [ -n "$mods" ] && grep -qE "^($(paste -sd'|' <<<"$mods"))/" <<<"$changed"; }; then
+                picked="$picked $s"
+              fi
+            done
+            reason="changes since ${base:0:12}"
+          fi
+          stacks="$(printf '%s\n' $picked | grep . | jq -R . | jq -sc .)"
+          echo "stacks=${stacks:-[]}" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "Drilling: ${stacks:-[]} ($reason)"
+
+  drill:
+    needs: select
+    if: needs.select.outputs.stacks != '[]' && needs.select.outputs.stacks != ''
+    name: Drill ${{ matrix.stack }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
     environment: aws-live
+    permissions:
+      id-token: write # the GitHub OIDC token AWS exchanges for the drill role's credentials
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        stack: ${{ fromJSON(needs.select.outputs.stacks) }}
+    env:
+      STACK: ${{ matrix.stack }}
+      STACK_DIR: live/stacks/${{ matrix.stack }}
+      HOLD_MINUTES: ${{ inputs.hold_minutes || '0' }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.select.outputs.sha }}
 
       - name: Check the environment is configured
         env:
           ROLE: ${{ secrets.AWS_LIVE_ROLE_ARN }}
           BUCKET: ${{ secrets.AWS_LIVE_STATE_BUCKET }}
         run: |
-          missing=""
-          [ -n "$ROLE" ] || missing="$missing AWS_LIVE_ROLE_ARN (aws-live secret)"
-          [ -n "$BUCKET" ] || missing="$missing AWS_LIVE_STATE_BUCKET (aws-live secret)"
-          [ -n "$AWS_REGION" ] || missing="$missing AWS_LIVE_REGION (repository variable)"
-          if [ -n "$missing" ]; then echo "::error::Not configured:$missing. See live/bootstrap/README.md."; exit 1; fi
+          [ -n "$ROLE" ] && [ -n "$BUCKET" ] && [ -n "$AWS_REGION" ] || { echo "::error::aws-live secrets or AWS_LIVE_REGION missing; see live/bootstrap/README.md"; exit 1; }
 
       - name: Read the pinned Terraform version
         id: versions
@@ -74,12 +172,22 @@ jobs:
           terraform_version: ${{ steps.versions.outputs.terraform }}
           terraform_wrapper: false
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install headless Chromium and image tools
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.65.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          sudo apt-get install -y -qq webp imagemagick >/dev/null
+
       - name: Assume the drill role (OIDC, 1 hour)
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_LIVE_ROLE_ARN }}
           aws-region: ${{ vars.AWS_LIVE_REGION }}
-          role-session-name: live-drill-${{ github.run_id }}-apply
+          role-session-name: live-drill-${{ github.run_id }}
           role-duration-seconds: 3600
           mask-aws-account-id: true
 
@@ -87,6 +195,8 @@ jobs:
         run: |
           account="$(aws sts get-caller-identity --query Account --output text)"
           echo "::add-mask::$account"
+          echo "ACCOUNT_ID=$account" >> "$GITHUB_ENV"
+          echo "TF_VAR_permissions_boundary_arn=arn:aws:iam::$account:policy/platform-live-drill-boundary" >> "$GITHUB_ENV"
 
       - name: terraform init
         env:
@@ -98,8 +208,12 @@ jobs:
           -backend-config="region=$AWS_REGION"
           -backend-config="use_lockfile=true"
 
-      - name: terraform plan
-        run: terraform -chdir="$STACK_DIR" plan -input=false -out=drill.tfplan -var "region=$AWS_REGION"
+      - name: terraform plan, then the plan gate
+        id: plan
+        run: |
+          terraform -chdir="$STACK_DIR" plan -input=false -out=drill.tfplan -var "region=$AWS_REGION"
+          terraform -chdir="$STACK_DIR" show -json drill.tfplan > plan.json
+          live/plan-gate.sh plan.json
 
       - name: terraform apply
         id: apply
@@ -108,65 +222,25 @@ jobs:
           terraform -chdir="$STACK_DIR" apply -input=false drill.tfplan
           echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
 
-      - name: Collect evidence (read-only describe calls)
-        env:
-          APPLY_SECONDS: ${{ steps.apply.outputs.seconds }}
+      - name: Evidence (read-only describe calls)
+        if: steps.apply.outcome == 'success'
         run: |
-          live/evidence.sh "$STACK" "evidence/$STACK"
-          jq -n --arg sha "$GITHUB_SHA" --arg stack "$STACK" --argjson apply "$APPLY_SECONDS" \
-            --argjson hold "$HOLD_MINUTES" --arg run "$GITHUB_RUN_ID" \
-            '{stack: $stack, commit: $sha, run_id: $run, apply_seconds: $apply, hold_minutes: $hold}' \
-            > "evidence/$STACK/timing.json"
-          live/summary.sh "$STACK" "$HOLD_MINUTES" "$APPLY_SECONDS" > "evidence/$STACK/summary.md"
+          live/evidence.sh "$STACK" "out/evidence"
+          live/summary.sh "$STACK" "$HOLD_MINUTES" "${{ steps.apply.outputs.seconds }}" > out/evidence/summary.md
+          cat out/evidence/summary.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload evidence
-        uses: actions/upload-artifact@v7
-        with:
-          name: live-evidence-${{ inputs.stack }}-${{ github.run_id }}
-          path: evidence/${{ inputs.stack }}
-          retention-days: 30
-          if-no-files-found: error
+      - name: Console screenshots (headless Chromium, 2x)
+        if: steps.apply.outcome == 'success'
+        timeout-minutes: 15
+        run: node live/console-shots.mjs "$STACK" out/evidence/outputs.json out/shots
 
-      - name: Job summary
-        run: cat "evidence/$STACK/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Hold (manual drills only)
+        if: steps.apply.outcome == 'success' && env.HOLD_MINUTES != '0'
+        run: sleep $(( HOLD_MINUTES * 60 ))
 
-      - name: Apply failed
-        if: failure()
-        run: |
-          {
-            echo "## Live drill: \`$STACK\` apply failed"
-            echo
-            echo "The destroy job runs anyway (approve it) and removes whatever was created, without waiting for the hold."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  destroy:
-    needs: apply
-    # Runs whatever happened to apply (failed, cancelled or rejected), so a half-applied stack is cleaned up.
-    if: always()
-    runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    environment: aws-live
-    steps:
-      # The hold comes first so the one-hour role session starts after it and covers the whole destroy.
-      # No hold when apply did not succeed: there is nothing to look at, only something to clean up.
-      - name: Hold for screenshots
-        if: needs.apply.result == 'success'
-        run: |
-          echo "Holding ${HOLD_MINUTES} minutes; destroy starts at $(date -u -d "+${HOLD_MINUTES} minutes" '+%H:%M UTC')."
-          sleep $(( HOLD_MINUTES * 60 ))
-
-      - uses: actions/checkout@v5
-
-      - name: Read the pinned Terraform version
-        id: versions
-        run: echo "terraform=$(awk '$1 == "terraform" {print $2}' .tool-versions)" >> "$GITHUB_OUTPUT"
-
-      - uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: ${{ steps.versions.outputs.terraform }}
-          terraform_wrapper: false
-
-      - name: Assume the drill role (OIDC, 1 hour)
+      # Fresh one-hour credentials so a long apply or hold can never leave destroy without a session.
+      - name: Re-assume the drill role for destroy
+        if: always()
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_LIVE_ROLE_ARN }}
@@ -175,83 +249,102 @@ jobs:
           role-duration-seconds: 3600
           mask-aws-account-id: true
 
-      - name: Mask the account ID
-        run: |
-          account="$(aws sts get-caller-identity --query Account --output text)"
-          echo "::add-mask::$account"
-
-      - name: terraform init
-        env:
-          STATE_BUCKET: ${{ secrets.AWS_LIVE_STATE_BUCKET }}
-        run: >-
-          terraform -chdir="$STACK_DIR" init -input=false
-          -backend-config="bucket=$STATE_BUCKET"
-          -backend-config="key=live/$STACK/terraform.tfstate"
-          -backend-config="region=$AWS_REGION"
-          -backend-config="use_lockfile=true"
-
       - name: terraform destroy
         id: destroy
+        if: always() && steps.versions.outcome == 'success'
         run: |
           start=$(date +%s)
           terraform -chdir="$STACK_DIR" destroy -auto-approve -input=false -var "region=$AWS_REGION"
           echo "seconds=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
 
       - name: Verify nothing is left
+        id: verify
+        if: always() && steps.destroy.outcome == 'success'
         run: |
-          left="$(terraform -chdir="$STACK_DIR" state list)"
-          if [ -n "$left" ]; then
-            echo "::error::Terraform state still lists resources after destroy:"
-            echo "$left"
-            exit 1
-          fi
-          echo "state: empty"
+          [ -z "$(terraform -chdir="$STACK_DIR" state list)" ] || { echo "::error::state not empty after destroy"; exit 1; }
           live/verify-destroyed.sh "$STACK"
 
       - name: Record the result
         if: always()
         env:
-          DESTROY_OUTCOME: ${{ steps.destroy.outcome }}
-          DESTROY_SECONDS: ${{ steps.destroy.outputs.seconds }}
-          JOB_STATUS: ${{ job.status }}
+          SHA: ${{ needs.select.outputs.sha }}
+          REASON: ${{ needs.select.outputs.reason }}
+          GATE: ${{ steps.plan.outcome }}
+          APPLY: ${{ steps.apply.outcome }}
+          APPLY_S: ${{ steps.apply.outputs.seconds }}
+          DESTROY: ${{ steps.destroy.outcome }}
+          DESTROY_S: ${{ steps.destroy.outputs.seconds }}
+          VERIFY: ${{ steps.verify.outcome }}
         run: |
-          mkdir -p "destroy/$STACK"
-          verified=false
-          [ "$JOB_STATUS" = "success" ] && verified=true
-          jq -n --arg stack "$STACK" --arg run "$GITHUB_RUN_ID" --arg outcome "$DESTROY_OUTCOME" \
-            --arg seconds "${DESTROY_SECONDS:-}" --argjson verified "$verified" \
-            '{stack: $stack, run_id: $run, destroy_outcome: $outcome, destroy_seconds: ($seconds | tonumber? // null), destroy_verified: $verified}' \
-            > "destroy/$STACK/destroy.json"
-          if [ "$verified" = true ]; then
-            {
-              echo "## Live drill: \`$STACK\` destroyed"
-              echo
-              echo "- Destroy took ${DESTROY_SECONDS}s."
-              echo "- Terraform state is empty and nothing tagged \`live-stack=$STACK\` remains. **Destroy verified.**"
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::error::Destroy of $STACK failed or left resources behind. Resources may still be running and billing."
-            {
-              echo "## Live drill: \`$STACK\` DESTROY FAILED"
-              echo
-              echo "Resources may still be running. Re-run this job, or destroy by hand as an admin:"
-              echo
-              echo '```bash'
-              echo "cd live/stacks/$STACK"
-              echo 'terraform init -backend-config="bucket=<state bucket>" \'
-              echo "  -backend-config=\"key=live/$STACK/terraform.tfstate\" \\"
-              echo "  -backend-config=\"region=$AWS_REGION\" -backend-config=\"use_lockfile=true\""
-              echo "terraform destroy -var \"region=$AWS_REGION\""
-              echo "AWS_REGION=$AWS_REGION ../../verify-destroyed.sh $STACK"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p out
+          jq -n --arg stack "$STACK" --arg commit "$SHA" --arg reason "$REASON" --arg run "$GITHUB_RUN_ID" \
+            --arg gate "$([ "$GATE" = success ] && echo passed || echo "refused or failed ($GATE)")" \
+            --arg apply "$APPLY" --arg apply_s "${APPLY_S:-}" --arg destroy "$DESTROY" --arg destroy_s "${DESTROY_S:-}" \
+            --argjson verified "$([ "$VERIFY" = success ] && echo true || echo false)" \
+            '{stack: $stack, commit: $commit, reason: $reason, run_id: $run, gate: $gate,
+              apply_outcome: $apply, apply_seconds: ($apply_s | tonumber? // null),
+              destroy_outcome: $destroy, destroy_seconds: ($destroy_s | tonumber? // null),
+              destroy_verified: $verified}' > out/result.json
+          cat out/result.json
+          if [ "$VERIFY" != success ] && [ "$APPLY" != skipped ]; then
+            echo "::error::$STACK: destroy failed or was not verified. Resources may be running; live-reaper.yml retries hourly."
           fi
 
-      - name: Upload the destroy result
+      - name: Upload drill output
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: live-destroy-${{ inputs.stack }}-${{ github.run_id }}
-          path: destroy/${{ inputs.stack }}
+          name: live-${{ matrix.stack }}-${{ github.run_id }}
+          path: out
           retention-days: 30
           if-no-files-found: warn
+
+      - name: Fail the job if destroy was not verified
+        if: always() && steps.verify.outcome != 'success' && steps.apply.outcome != 'skipped'
+        run: exit 1
+
+  publish:
+    needs: [select, drill]
+    if: always() && needs.drill.result != 'skipped' && needs.select.outputs.stacks != '[]'
+    name: Commit the drill reports
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write # push docs/live/ to main; this job has no AWS access
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: live-*-${{ github.run_id }}
+          path: artifacts
+
+      - name: Install image tools
+        run: sudo apt-get install -y -qq webp imagemagick >/dev/null
+
+      - name: Write and commit the reports
+        run: |
+          # Authored as the repository owner so the report counts on his contribution graph; the committer
+          # stays github-actions[bot], so the history shows which commits the workflow made.
+          git config user.name "Rodrigo Pimenta"
+          git config user.email "11894505+rodrigopimenta10@users.noreply.github.com"
+          export GIT_COMMITTER_NAME="github-actions[bot]"
+          export GIT_COMMITTER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+          for d in artifacts/live-*; do
+            [ -f "$d/result.json" ] || continue
+            stack="$(jq -r .stack "$d/result.json")"
+            live/report.sh "$stack" "$d"
+          done
+          git add docs/live
+          git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
+          stacks="$(for d in artifacts/live-*; do jq -r .stack "$d/result.json" 2>/dev/null; done | paste -sd, -)"
+          git commit -q -m "docs(live): drill report for ${stacks} $(TZ=America/New_York date +%F)" \
+            -m "Applied, screenshotted and destroyed by live-drill.yml run $GITHUB_RUN_ID." \
+            -m "Co-Authored-By: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          for i in 1 2 3 4 5; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase -q origin main
+          done
+          echo "::error::could not push the report"; exit 1
