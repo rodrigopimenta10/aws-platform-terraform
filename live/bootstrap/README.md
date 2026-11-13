@@ -9,13 +9,19 @@ from editing this folder at all). It creates:
 | S3 bucket + KMS key (via [`modules/state-backend`](../../modules/state-backend/), project `platform`, environment `live`) | Holds the Terraform state of every drill stack (`live/<stack>/terraform.tfstate`) and of this stack (`bootstrap/terraform.tfstate`). |
 | GitHub Actions **OIDC identity provider** (`token.actions.githubusercontent.com`) | Lets AWS trust short-lived tokens that GitHub issues to a workflow run, so no AWS access keys are stored in GitHub. |
 | IAM role **`platform-live-drill`** | What the drill workflow becomes in AWS. Only the `aws-live` environment of this repo can assume it, for at most one hour. |
+| Policy **`platform-live-drill-boundary`** | Permissions boundary on the drill role and on every role a drill creates: the same limits, so no role made by a drill can exceed them. |
+| Budget **`platform-live-drill-guard`** + action + **`platform-live-drill-stop`** policy | When the month's account spend passes `guard_budget_usd` ($15), AWS Budgets attaches the deny-all stop policy to the drill role. Email at 50%. |
 
 **Cost:** about $1 a month for the KMS key ([KMS pricing](https://aws.amazon.com/kms/pricing/)) plus
 cents of S3 storage. The OIDC provider and the role are free.
 
 Nothing here is account-specific in git: the account ID comes from `aws_caller_identity` at plan time, the
 bucket name is derived from it, and the backend values are passed with `-backend-config`. Override any
-input in a `terraform.tfvars` here (gitignored) or with `-var`.
+input in a `terraform.tfvars` here (gitignored) or with `-var`. `alert_email` has no default (the repo is
+public): set it in `terraform.tfvars`.
+
+**If the guard budget switched drills off:** find what is running, destroy it, then as an admin
+`aws iam detach-role-policy --role-name platform-live-drill --policy-arn "$(terraform output -raw stop_policy_arn)"`.
 
 ## Inputs
 
@@ -75,6 +81,11 @@ AdministratorAccess grants:
 |---|---|---|
 | `DenyOutsideDrillRegion` | Every action not in a short list of global services, when `aws:RequestedRegion` isn't `us-east-1` | Nothing can be started (and forgotten) in a region nobody looks at. |
 | `DenyBucketsOutsideDrillRegion` | `s3:CreateBucket` with a `LocationConstraint` other than `us-east-1` | `aws:RequestedRegion` only says which endpoint was called; a bucket for another region can be created through the us-east-1 endpoint. |
+| `DenyServicesDrillsDoNotUse` | Every service not in `allowed_services` (EC2, EKS, IAM, S3, KMS, Logs, Lambda, API Gateway, SQS, DynamoDB, ECR, ELB, Auto Scaling, SSM, CloudWatch, Budgets, ...) | A bad commit can't start SageMaker, RDS, a Marketplace subscription, or ask Service Quotas or Support for more capacity. |
+| `DenyLargeInstanceTypes` | `ec2:RunInstances` for anything but `t3`/`t4g` up to `large` | Big instances by the role itself. Node groups launch through Auto Scaling's service-linked role, which IAM can't bind here: `live/plan-gate.sh` and the 5 vCPU account quota cover those. |
+| `DenyLongTermPurchasesAndDedicatedCapacity` | Reserved instances, dedicated hosts, capacity reservations and blocks | Nothing that bills after the drill ends. |
+| `DenyRolesWithoutTheBoundary`, `DenyRemovingBoundaries` | Creating a role, or setting a boundary, other than `platform-live-drill-boundary`; removing any boundary | Closes the escalation path: otherwise a drill could create an unrestricted admin role and assume it. |
+| `DenyChangesToGuardPolicies`, `DenyChangesToGuardBudget`, `DenyChangesToOtherBudgets` | Editing the boundary or stop policy; changing or deleting the guard budget, its action, or any budget not named `platform-live-*` | The spend stop and the account owner's own budgets stay as the admin set them. |
 | `DenyLongLivedIdentitiesAndAccountChanges` | `iam:CreateUser`, `iam:CreateAccessKey`, `iam:CreateLoginProfile`, `iam:UpdateLoginProfile`, `organizations:*`, `account:*` | No identity or key that outlives the one-hour session; no account-level changes. |
 | `DenyChangesToThisRole` | Attaching, putting, detaching or deleting policies, changing the trust policy or boundary, tagging, deleting or passing `platform-live-drill` | The role can't widen itself or remove its own guardrails. |
 | `DenyChangesToGitHubOidcProvider` | Deleting or changing the OIDC provider | Nobody can swap the identity provider the trust policy relies on. |
@@ -177,12 +188,11 @@ the environment's approval). The region is not sensitive and stays a repository 
 ```bash
 REPO=rodrigopimenta10/aws-platform-terraform
 
-# Environment: Rodrigo must approve, self-review allowed, deployments from main only.
+# Environment: deployments from main only. No required reviewer since 2026-11-13 (drills are unattended;
+# see live/README.md). To bring the approval back, add "reviewers": [{"type": "User", "id": 11894505}].
 gh api -X PUT "repos/$REPO/environments/aws-live" --input - <<'JSON'
 {
   "wait_timer": 0,
-  "prevent_self_review": false,
-  "reviewers": [{ "type": "User", "id": 11894505 }],
   "deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true }
 }
 JSON

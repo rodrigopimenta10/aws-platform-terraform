@@ -22,3 +22,13 @@ output "state_kms_key_arn" {
   description = "ARN of the KMS key that encrypts the state bucket by default. The drill backends do not need it: they omit `encrypt`, so the bucket's default SSE-KMS applies."
   value       = module.state_backend.kms_key_arn
 }
+
+output "permissions_boundary_arn" {
+  description = "Boundary every role created by a drill must carry. The workflow passes it to stacks as TF_VAR_permissions_boundary_arn."
+  value       = aws_iam_policy.boundary.arn
+}
+
+output "stop_policy_arn" {
+  description = "Deny-all policy the guard budget's action attaches to the drill role. Detach it (as an admin) to re-enable drills."
+  value       = aws_iam_policy.stop.arn
+}

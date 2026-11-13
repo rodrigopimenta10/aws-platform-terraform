@@ -56,6 +56,7 @@ locals {
   # are fully known at plan time and the unit tests can inspect them.
   oidc_provider_arn = "arn:${local.partition}:iam::${local.account_id}:oidc-provider/${local.github_oidc_host}"
   role_arn          = "arn:${local.partition}:iam::${local.account_id}:role/${local.role_name}"
+  budgets_role_arn  = "arn:${local.partition}:iam::${local.account_id}:role/${local.role_name}-budgets-action"
 
   # Services exempt from the region guardrail. aws:RequestedRegion is the region of the endpoint a request
   # is sent to. Global services with a single endpoint (IAM, CloudFront, Route 53, Support, Budgets, Cost
@@ -76,6 +77,160 @@ locals {
     "support:*",
   ]
 
+  boundary_name     = "${local.role_name}-boundary"
+  boundary_arn      = "arn:${local.partition}:iam::${local.account_id}:policy/${local.boundary_name}"
+  stop_policy_name  = "${local.role_name}-stop"
+  stop_policy_arn   = "arn:${local.partition}:iam::${local.account_id}:policy/${local.stop_policy_name}"
+  guard_budget_name = "${local.role_name}-guard"
+  guard_budget_arn  = "arn:${local.partition}:budgets::${local.account_id}:budget/${local.guard_budget_name}"
+
+  # The only services a drill may call. Everything else is denied, so a bad commit can't start, say,
+  # SageMaker, RDS or a Marketplace subscription. Adding a service is a bootstrap change by an admin.
+  # Deliberately absent: servicequotas (raising the 5 vCPU / 0 GPU account limits), support (quota
+  # increase cases), savingsplans, aws-marketplace, organizations, account, billing.
+  allowed_services = [
+    "acm:*",
+    "application-autoscaling:*",
+    "autoscaling:*",
+    "budgets:*",
+    "cloudwatch:*",
+    "dynamodb:*",
+    "ec2:*",
+    "ec2messages:*",
+    "ecr:*",
+    "eks:*",
+    "eks-auth:*",
+    "elasticloadbalancing:*",
+    "events:*",
+    "iam:*",
+    "kms:*",
+    "lambda:*",
+    "logs:*",
+    "apigateway:*",
+    "pricing:*",
+    "resource-groups:*",
+    "route53:*",
+    "s3:*",
+    "secretsmanager:*",
+    "sns:*",
+    "sqs:*",
+    "ssm:*",
+    "ssmmessages:*",
+    "sts:*",
+    "tag:*",
+    "xray:*",
+  ]
+
+  # Statements shared by the role's inline guardrails and the permissions boundary, so every role a
+  # drill creates is held to the same limits as the drill role itself.
+  shared_guard_statements = [
+    {
+      Sid       = "DenyServicesDrillsDoNotUse"
+      Effect    = "Deny"
+      NotAction = local.allowed_services
+      Resource  = "*"
+    },
+    {
+      Sid       = "DenyOutsideDrillRegion"
+      Effect    = "Deny"
+      NotAction = local.region_exempt_actions
+      Resource  = "*"
+      Condition = {
+        StringNotEquals = { "aws:RequestedRegion" = [var.region] }
+      }
+    },
+    {
+      # Small burstable types only. Node groups launch through the Auto Scaling service-linked role,
+      # which this does not bind; the account's 5 vCPU on-demand quota and live/plan-gate.sh cover those.
+      Sid      = "DenyLargeInstanceTypes"
+      Effect   = "Deny"
+      Action   = "ec2:RunInstances"
+      Resource = "arn:${local.partition}:ec2:*:*:instance/*"
+      Condition = {
+        StringNotLike = { "ec2:InstanceType" = var.allowed_instance_types }
+      }
+    },
+    {
+      Sid    = "DenyLongTermPurchasesAndDedicatedCapacity"
+      Effect = "Deny"
+      Action = [
+        "ec2:AllocateHosts",
+        "ec2:CreateCapacityReservation",
+        "ec2:CreateCapacityReservationFleet",
+        "ec2:PurchaseCapacityBlock",
+        "ec2:PurchaseHostReservation",
+        "ec2:PurchaseReservedInstancesOffering",
+        "ec2:PurchaseScheduledInstances",
+      ]
+      Resource = "*"
+    },
+    {
+      Sid    = "DenyLongLivedIdentitiesAndAccountChanges"
+      Effect = "Deny"
+      Action = [
+        "account:*",
+        "iam:CreateAccessKey",
+        "iam:CreateLoginProfile",
+        "iam:CreateUser",
+        "iam:UpdateLoginProfile",
+        "organizations:*",
+      ]
+      Resource = "*"
+    },
+    {
+      # Closes the escalation path: without this, a drill could create a role with AdministratorAccess and
+      # no guardrails, assume it, and do anything. Every new role must carry this boundary, which caps it
+      # at these same limits whatever policies are attached to it.
+      Sid      = "DenyRolesWithoutTheBoundary"
+      Effect   = "Deny"
+      Action   = ["iam:CreateRole", "iam:PutRolePermissionsBoundary"]
+      Resource = "*"
+      Condition = {
+        StringNotEquals = { "iam:PermissionsBoundary" = local.boundary_arn }
+      }
+    },
+    {
+      Sid      = "DenyRemovingBoundaries"
+      Effect   = "Deny"
+      Action   = "iam:DeleteRolePermissionsBoundary"
+      Resource = "*"
+    },
+    {
+      Sid    = "DenyChangesToGuardPolicies"
+      Effect = "Deny"
+      Action = [
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:TagPolicy",
+        "iam:UntagPolicy",
+      ]
+      Resource = [local.boundary_arn, local.stop_policy_arn]
+    },
+    {
+      # Budgets is allowed (roadmap M6.2 creates one), but not the guard budget or its action, and not
+      # budgets outside the platform-live-* names (such as the account owner's own).
+      Sid    = "DenyChangesToGuardBudget"
+      Effect = "Deny"
+      Action = [
+        "budgets:CreateBudgetAction",
+        "budgets:DeleteBudget",
+        "budgets:DeleteBudgetAction",
+        "budgets:ExecuteBudgetAction",
+        "budgets:ModifyBudget",
+        "budgets:UpdateBudgetAction",
+      ]
+      Resource = [local.guard_budget_arn, "${local.guard_budget_arn}/action/*"]
+    },
+    {
+      Sid         = "DenyChangesToOtherBudgets"
+      Effect      = "Deny"
+      Action      = ["budgets:CreateBudgetAction", "budgets:DeleteBudget", "budgets:DeleteBudgetAction", "budgets:ExecuteBudgetAction", "budgets:ModifyBudget", "budgets:UpdateBudgetAction"]
+      NotResource = ["arn:${local.partition}:budgets::${local.account_id}:budget/platform-live-*"]
+    },
+  ]
+
   trust_policy = {
     Version = "2012-10-17"
     Statement = [{
@@ -94,16 +249,7 @@ locals {
 
   guardrails_policy = {
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "DenyOutsideDrillRegion"
-        Effect    = "Deny"
-        NotAction = local.region_exempt_actions
-        Resource  = "*"
-        Condition = {
-          StringNotEquals = { "aws:RequestedRegion" = [var.region] }
-        }
-      },
+    Statement = concat(local.shared_guard_statements, [
       {
         # aws:RequestedRegion only controls which endpoint is called. s3:CreateBucket sent to the us-east-1
         # endpoint can still create a bucket in another region through its LocationConstraint, so that
@@ -119,22 +265,8 @@ locals {
         }
       },
       {
-        # No long-lived identities: IAM users, access keys and console passwords would outlive the drill
-        # and the one-hour session. Organizations and account settings are out of scope for any drill.
-        Sid    = "DenyLongLivedIdentitiesAndAccountChanges"
-        Effect = "Deny"
-        Action = [
-          "account:*",
-          "iam:CreateAccessKey",
-          "iam:CreateLoginProfile",
-          "iam:CreateUser",
-          "iam:UpdateLoginProfile",
-          "organizations:*",
-        ]
-        Resource = "*"
-      },
-      {
-        # The role cannot widen its own permissions, change who may assume it, or remove these guardrails.
+        # The role cannot widen its own permissions, change who may assume it, or remove these guardrails,
+        # and cannot tamper with the role AWS Budgets uses to stop it.
         Sid    = "DenyChangesToThisRole"
         Effect = "Deny"
         Action = [
@@ -152,7 +284,7 @@ locals {
           "iam:UpdateRole",
           "iam:UpdateRoleDescription",
         ]
-        Resource = local.role_arn
+        Resource = [local.role_arn, local.budgets_role_arn]
       },
       {
         Sid    = "DenyChangesToGitHubOidcProvider"
@@ -208,7 +340,22 @@ locals {
         ]
         Resource = module.state_backend.kms_key_arn
       },
-    ]
+    ])
+  }
+
+  # The ceiling for every role a drill creates (and for the drill role itself): allow everything, then the
+  # shared denies. A boundary never grants anything; the effective permissions are the intersection.
+  boundary_policy = {
+    Version = "2012-10-17"
+    Statement = concat([
+      {
+        Sid      = "AllowWithinTheLimitsBelow"
+        Effect   = "Allow"
+        Action   = "*"
+        Resource = "*"
+      }],
+      local.shared_guard_statements,
+    )
   }
 }
 
@@ -237,6 +384,7 @@ resource "aws_iam_role" "drill" {
   description          = "Assumed only by the ${var.github_environment} environment of ${var.github_repository} to apply and destroy live drill stacks."
   assume_role_policy   = jsonencode(local.trust_policy)
   max_session_duration = var.max_session_duration
+  permissions_boundary = aws_iam_policy.boundary.arn
 
   # The trust policy names the provider by its ARN string, so make the ordering explicit.
   depends_on = [aws_iam_openid_connect_provider.github]
@@ -256,4 +404,120 @@ resource "aws_iam_role_policy" "guardrails" {
   name   = "live-drill-guardrails"
   role   = aws_iam_role.drill.id
   policy = jsonencode(local.guardrails_policy)
+}
+
+# ---------------------------------------------------------------------------------------------
+# Permissions boundary for every role a drill creates
+# ---------------------------------------------------------------------------------------------
+# Drill stacks pass this ARN to modules that create IAM roles (TF_VAR_permissions_boundary_arn, set by the
+# workflow). A role created without it is refused by DenyRolesWithoutTheBoundary.
+resource "aws_iam_policy" "boundary" {
+  #checkov:skip=CKV_AWS_288:A permissions boundary only caps permissions, it grants none; Allow * is the standard boundary shape, narrowed by the explicit denies in the same document.
+  #checkov:skip=CKV_AWS_289:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV_AWS_290:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV_AWS_355:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV_AWS_286:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV_AWS_287:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV_AWS_62:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV_AWS_63:Same: a boundary's Allow * grants nothing on its own.
+  #checkov:skip=CKV2_AWS_40:Same: a boundary's Allow * grants nothing on its own.
+  name        = local.boundary_name
+  description = "Ceiling for live-drill roles: drill region, allowed services, small instances, no long-lived identities, no escaping this boundary."
+  policy      = jsonencode(local.boundary_policy)
+}
+
+# ---------------------------------------------------------------------------------------------
+# Hard stop on spend: a budget action that attaches a deny-all policy to the drill role
+# ---------------------------------------------------------------------------------------------
+# Budgets reads billing data a few times a day, so this is a backstop measured in hours, not a meter.
+# The faster controls are the one-at-a-time drills, the destroy in the same job, the hourly reaper and the
+# 5 vCPU account quota. To lift the stop: detach platform-live-drill-stop from the role, as an admin.
+resource "aws_iam_policy" "stop" {
+  name        = local.stop_policy_name
+  description = "Attached to platform-live-drill by the guard budget's action when spend passes the limit. Denies everything."
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid      = "DenyEverything"
+      Effect   = "Deny"
+      Action   = "*"
+      Resource = "*"
+    }]
+  })
+}
+
+resource "aws_iam_role" "budgets_action" {
+  name        = "${local.role_name}-budgets-action"
+  description = "Lets AWS Budgets attach the stop policy to platform-live-drill when the guard budget is exceeded."
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      # Budgets checks it can assume the role while the action is created, before the action has an ARN,
+      # so the condition is on the account only (an ArnLike on the action ARN was refused, 2026-11-13).
+      Effect    = "Allow"
+      Principal = { Service = ["budgets.amazonaws.com", "actions.budgets.amazonaws.com"] }
+      Action    = "sts:AssumeRole"
+      Condition = {
+        StringEquals = { "aws:SourceAccount" = local.account_id }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "budgets_action" {
+  name = "attach-stop-policy"
+  role = aws_iam_role.budgets_action.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid      = "AttachOnlyTheStopPolicyToTheDrillRole"
+      Effect   = "Allow"
+      Action   = ["iam:AttachRolePolicy", "iam:DetachRolePolicy"]
+      Resource = local.role_arn
+      Condition = {
+        ArnEquals = { "iam:PolicyARN" = local.stop_policy_arn }
+      }
+    }]
+  })
+}
+
+resource "aws_budgets_budget" "guard" {
+  name         = local.guard_budget_name
+  budget_type  = "COST"
+  limit_amount = tostring(var.guard_budget_usd)
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 50
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_email_addresses = [var.alert_email]
+  }
+}
+
+resource "aws_budgets_budget_action" "stop_drills" {
+  budget_name        = aws_budgets_budget.guard.name
+  action_type        = "APPLY_IAM_POLICY"
+  approval_model     = "AUTOMATIC"
+  notification_type  = "ACTUAL"
+  execution_role_arn = aws_iam_role.budgets_action.arn
+
+  action_threshold {
+    action_threshold_type  = "PERCENTAGE"
+    action_threshold_value = 100
+  }
+
+  definition {
+    iam_action_definition {
+      policy_arn = aws_iam_policy.stop.arn
+      roles      = [aws_iam_role.drill.name]
+    }
+  }
+
+  subscriber {
+    address           = var.alert_email
+    subscription_type = "EMAIL"
+  }
 }

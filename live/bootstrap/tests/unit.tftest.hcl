@@ -14,6 +14,10 @@ mock_provider "aws" {
   }
 }
 
+variables {
+  alert_email = "alerts@example.com"
+}
+
 override_module {
   target = module.state_backend
   outputs = {
@@ -143,8 +147,8 @@ run "role_and_oidc_provider_are_protected" {
   command = plan
 
   assert {
-    condition     = one([for s in jsondecode(aws_iam_role_policy.guardrails.policy).Statement : s.Resource if s.Sid == "DenyChangesToThisRole"]) == "arn:aws:iam::123456789012:role/platform-live-drill"
-    error_message = "The self-protection statement must target this role."
+    condition     = toset(one([for s in jsondecode(aws_iam_role_policy.guardrails.policy).Statement : s.Resource if s.Sid == "DenyChangesToThisRole"])) == toset(["arn:aws:iam::123456789012:role/platform-live-drill", "arn:aws:iam::123456789012:role/platform-live-drill-budgets-action"])
+    error_message = "The self-protection statement must target this role and the budgets action role."
   }
 
   assert {
@@ -209,4 +213,89 @@ run "rejects_wildcard_repository" {
   }
 
   expect_failures = [var.github_repository]
+}
+
+run "drill_role_carries_the_boundary" {
+  command = plan
+
+  assert {
+    condition     = aws_iam_policy.boundary.name == "platform-live-drill-boundary"
+    error_message = "The boundary policy must be called platform-live-drill-boundary."
+  }
+
+  assert {
+    condition     = jsondecode(aws_iam_policy.boundary.policy).Statement[0].Effect == "Allow" && alltrue([for s in slice(jsondecode(aws_iam_policy.boundary.policy).Statement, 1, length(jsondecode(aws_iam_policy.boundary.policy).Statement)) : s.Effect == "Deny"])
+    error_message = "The boundary is one Allow * followed only by denies."
+  }
+}
+
+run "new_roles_must_carry_the_boundary" {
+  command = plan
+
+  assert {
+    condition = one([
+      for s in jsondecode(aws_iam_role_policy.guardrails.policy).Statement : s.Condition.StringNotEquals["iam:PermissionsBoundary"]
+      if s.Sid == "DenyRolesWithoutTheBoundary"
+    ]) == "arn:aws:iam::123456789012:policy/platform-live-drill-boundary"
+    error_message = "CreateRole must be denied unless the new role carries the drill boundary."
+  }
+
+  assert {
+    condition     = contains([for s in jsondecode(aws_iam_policy.boundary.policy).Statement : s.Sid], "DenyRolesWithoutTheBoundary")
+    error_message = "Roles created by drill-created roles must be bound too (the rule lives in the boundary as well)."
+  }
+}
+
+run "only_allowed_services_and_small_instances" {
+  command = plan
+
+  assert {
+    condition = alltrue([
+      for svc in ["sagemaker:*", "rds:*", "aws-marketplace:*", "servicequotas:*", "savingsplans:*", "support:*"] :
+      !contains(one([for s in jsondecode(aws_iam_role_policy.guardrails.policy).Statement : s.NotAction if s.Sid == "DenyServicesDrillsDoNotUse"]), svc)
+    ])
+    error_message = "Expensive or account-level services must stay outside the allowlist."
+  }
+
+  assert {
+    condition = alltrue([
+      for t in one([for s in jsondecode(aws_iam_role_policy.guardrails.policy).Statement : s.Condition.StringNotLike["ec2:InstanceType"] if s.Sid == "DenyLargeInstanceTypes"]) :
+      startswith(t, "t3.") || startswith(t, "t4g.")
+    ])
+    error_message = "Only t3 and t4g instance types are allowed by default."
+  }
+}
+
+run "guard_budget_stops_the_drill_role" {
+  command = plan
+
+  assert {
+    condition     = aws_budgets_budget_action.stop_drills.approval_model == "AUTOMATIC" && aws_budgets_budget_action.stop_drills.action_type == "APPLY_IAM_POLICY"
+    error_message = "The budget action must apply the stop policy automatically."
+  }
+
+  assert {
+    condition     = aws_budgets_budget.guard.limit_amount == "15" && aws_budgets_budget.guard.time_unit == "MONTHLY"
+    error_message = "Default guard budget is 15 USD a month."
+  }
+
+  assert {
+    condition     = jsondecode(aws_iam_policy.stop.policy).Statement[0].Action == "*" && jsondecode(aws_iam_policy.stop.policy).Statement[0].Effect == "Deny"
+    error_message = "The stop policy denies everything."
+  }
+
+  assert {
+    condition     = jsondecode(aws_iam_role_policy.budgets_action.policy).Statement[0].Condition.ArnEquals["iam:PolicyARN"] == "arn:aws:iam::123456789012:policy/platform-live-drill-stop"
+    error_message = "AWS Budgets may attach only the stop policy."
+  }
+}
+
+run "rejects_bad_alert_email" {
+  command = plan
+
+  variables {
+    alert_email = "not-an-email"
+  }
+
+  expect_failures = [var.alert_email]
 }

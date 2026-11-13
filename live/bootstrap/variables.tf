@@ -69,3 +69,35 @@ variable "max_session_duration" {
     error_message = "max_session_duration must be a whole number of seconds between 900 and 3600."
   }
 }
+
+variable "allowed_instance_types" {
+  description = "EC2 instance types (wildcards allowed) the drill role may launch directly. Small burstable families only."
+  type        = list(string)
+  default     = ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t4g.nano", "t4g.micro", "t4g.small", "t4g.medium", "t4g.large"]
+
+  validation {
+    condition     = length(var.allowed_instance_types) > 0 && alltrue([for t in var.allowed_instance_types : can(regex("^[a-z0-9]+\\.[a-z0-9*]+$", t))])
+    error_message = "allowed_instance_types must be instance type names like t3.medium."
+  }
+}
+
+variable "guard_budget_usd" {
+  description = "Monthly account spend (USD) at which AWS Budgets attaches a deny-all policy to the drill role. A backstop: billing data lags by hours."
+  type        = number
+  default     = 15
+
+  validation {
+    condition     = var.guard_budget_usd >= 1 && var.guard_budget_usd <= 200
+    error_message = "guard_budget_usd must be between 1 and 200."
+  }
+}
+
+variable "alert_email" {
+  description = "Where the guard budget and its stop action send email. Set it in the gitignored terraform.tfvars; never commit it (the repo is public)."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.alert_email))
+    error_message = "alert_email must be an email address."
+  }
+}
