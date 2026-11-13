@@ -67,29 +67,49 @@ async function signinUrl(destination) {
   return `https://signin.aws.amazon.com/federation?${q}`;
 }
 
-// Replace the account ID everywhere in the page; return how many visible occurrences remain.
-async function redact(page) {
-  return page.evaluate((id) => {
-    const dashed = `${id.slice(0, 4)}-${id.slice(4, 8)}-${id.slice(8)}`;
-    const swap = (s) => s.split(id).join("<ACCOUNT_ID>").split(dashed).join("<ACCOUNT_ID>");
-    const roots = [document];
-    for (const el of document.querySelectorAll("*")) if (el.shadowRoot) roots.push(el.shadowRoot);
-    for (const root of roots) {
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        if (n.nodeValue.includes(id) || n.nodeValue.includes(dashed)) n.nodeValue = swap(n.nodeValue);
-      }
-      for (const el of root.querySelectorAll("input, textarea")) if (el.value.includes(id)) el.value = swap(el.value);
-      for (const el of root.querySelectorAll("[title], [aria-label]")) {
-        for (const a of ["title", "aria-label"]) {
-          const v = el.getAttribute(a);
-          if (v && (v.includes(id) || v.includes(dashed))) el.setAttribute(a, swap(v));
-        }
+// Replace the account ID everywhere (every frame: the console renders service pages in iframes); return
+// how many visible occurrences remain across all frames.
+function redactInFrame(id) {
+  const dashed = `${id.slice(0, 4)}-${id.slice(4, 8)}-${id.slice(8)}`;
+  const swap = (s) => s.split(id).join("<ACCOUNT_ID>").split(dashed).join("<ACCOUNT_ID>");
+  const roots = [document];
+  for (const el of document.querySelectorAll("*")) if (el.shadowRoot) roots.push(el.shadowRoot);
+  for (const root of roots) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if (n.nodeValue.includes(id) || n.nodeValue.includes(dashed)) n.nodeValue = swap(n.nodeValue);
+    }
+    for (const el of root.querySelectorAll("input, textarea")) if (el.value.includes(id)) el.value = swap(el.value);
+    for (const el of root.querySelectorAll("[title], [aria-label]")) {
+      for (const a of ["title", "aria-label"]) {
+        const v = el.getAttribute(a);
+        if (v && (v.includes(id) || v.includes(dashed))) el.setAttribute(a, swap(v));
       }
     }
-    const text = document.body.innerText;
-    return (text.split(id).length - 1) + (text.split(dashed).length - 1);
-  }, ACCOUNT_ID);
+  }
+  const text = document.body?.innerText ?? "";
+  return (text.split(id).length - 1) + (text.split(dashed).length - 1);
+}
+
+async function redact(page) {
+  let left = 0;
+  for (const f of page.frames()) left += await f.evaluate(redactInFrame, ACCOUNT_ID).catch(() => 0);
+  return left;
+}
+
+// First element matching make(frame) in any frame, waiting up to `timeout` ms for one to appear.
+async function findAnywhere(page, make, timeout = 45_000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    for (const f of page.frames()) {
+      const loc = make(f).first();
+      if (await loc.count().catch(() => 0)) {
+        if (await loc.isVisible().catch(() => false)) return loc;
+      }
+    }
+    await page.waitForTimeout(500);
+  }
+  throw new Error("not found in any frame within " + timeout / 1000 + "s");
 }
 
 const HEADER = [
@@ -103,30 +123,40 @@ const HEADER = [
 // What the page is, without anything identifying: title, path (no query or fragment values) and a little
 // visible text, with the account ID removed. Logged when a capture fails.
 async function describe(page) {
-  const u = new URL(page.url());
-  const text = await page.evaluate(() => document.body?.innerText ?? "").catch(() => "");
-  const clean = (s) => s.split(ACCOUNT_ID).join("<ACCOUNT_ID>").replace(/\s+/g, " ").slice(0, 160);
-  return `title="${clean(await page.title())}" at ${u.host}${u.pathname} text="${clean(text)}"`;
+  const clean = (s) => s.split(ACCOUNT_ID).join("<ACCOUNT_ID>").replace(/\s+/g, " ").slice(0, 120);
+  const parts = [];
+  for (const f of page.frames()) {
+    let host = "?";
+    try {
+      const u = new URL(f.url());
+      host = `${u.host}${u.pathname}`.slice(0, 70);
+    } catch {}
+    const text = await f.evaluate(() => document.body?.innerText ?? "").catch(() => "");
+    parts.push(`[${host}] ${text.length} chars "${clean(text)}"`);
+  }
+  return `title="${clean(await page.title())}" frames=${page.frames().length}: ${parts.join(" | ")}`;
 }
 
 async function steps(page, entry) {
   for (const step of entry.steps ?? []) {
-    if (step.tab) await page.getByRole("tab", { name: step.tab, exact: false }).first().click();
+    if (step.tab) await (await findAnywhere(page, (f) => f.getByRole("tab", { name: step.tab, exact: false }))).click();
     if (step.search) {
-      const box = page.getByRole("searchbox").or(page.getByPlaceholder(/find|search|filter/i)).first();
+      const box = await findAnywhere(page, (f) => f.getByRole("searchbox").or(f.getByPlaceholder(/find|search|filter/i)));
       await box.fill(step.search);
       await box.press("Enter");
     }
-    if (step.click) await page.getByText(step.click, { exact: false }).first().click();
-    if (step.wait_for) await page.getByText(step.wait_for, { exact: false }).first().waitFor({ timeout: 30_000 });
-    await page.waitForTimeout(1500);
+    if (step.click) await (await findAnywhere(page, (f) => f.getByText(step.click, { exact: false }))).click();
+    if (step.wait_for) await findAnywhere(page, (f) => f.getByText(step.wait_for, { exact: false }));
+    await page.waitForTimeout(2000);
   }
 }
 
 async function dismissPopups(page) {
-  for (const name of ["Dismiss", "Close", "Got it", "Not now", "Accept all"]) {
-    const b = page.getByRole("button", { name, exact: true });
-    if (await b.count()) await b.first().click({ timeout: 2000 }).catch(() => {});
+  for (const f of page.frames()) {
+    for (const name of ["Dismiss", "Close", "Got it", "Not now", "Accept all"]) {
+      const b = f.getByRole("button", { name, exact: true });
+      if (await b.count().catch(() => 0)) await b.first().click({ timeout: 2000 }).catch(() => {});
+    }
   }
 }
 
@@ -152,7 +182,7 @@ try {
     try {
       await page.goto(fill(entry.url), { waitUntil: "domcontentloaded", timeout: 60_000 });
       await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
-      await page.waitForTimeout(3000); // console tables fill in after the network settles
+      await page.waitForTimeout(5000); // console tables fill in after the network settles
       await dismissPopups(page);
       await steps(page, entry);
       const left = await redact(page);
