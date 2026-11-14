@@ -21,7 +21,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 ## M1: Network
 - [x] **M1.1** (L) `modules/vpc`: VPC across 3 AZs with public, private and isolated subnet tiers, sized by variables using `cidrsubnet`. Outputs ready for EKS.
 - [x] **M1.2** (M) NAT strategy: `single_nat_gateway` vs one per AZ, controlled by a variable. ADR 0004 on cost vs availability, with rough monthly numbers.
-- [ ] **M1.3** (M) VPC endpoints: an S3 gateway endpoint, plus interface endpoints for ECR (api, dkr), STS and CloudWatch Logs, each with its own security group.
+- [x] **M1.3** (M) VPC endpoints: an S3 gateway endpoint, plus interface endpoints for ECR (api, dkr), STS and CloudWatch Logs, each with its own security group.
 - [ ] **M1.4** (S) VPC flow logs to CloudWatch Logs with a retention variable and a KMS key.
 - [ ] **M1.5** (S) Wire the VPC into `envs/dev` and add an integration test that asserts subnet counts and route tables.
 
