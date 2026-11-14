@@ -44,3 +44,29 @@ vpc:
     steps:
       - tab: "Tags"
     proves: "Standard tags from ADR 0002 (project, environment=live, owner, managed-by) plus live-stack=vpc"
+m1:
+  - name: endpoints
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#Endpoints:search=platform-live"
+    steps:
+      - wait_for: "platform-live-sts-vpce"
+    proves: "5 endpoints: the S3 gateway endpoint plus ECR api, ECR dkr, STS and Logs interface endpoints, all named platform-live-<service>-vpce"
+  - name: sts-endpoint-details
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#EndpointDetails:vpcEndpointId={sts_endpoint_id}"
+    steps:
+      - wait_for: "platform-live-sts-vpce"
+    proves: "STS interface endpoint with private DNS names enabled, in the drill VPC"
+  - name: sts-endpoint-subnets
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#EndpointDetails:vpcEndpointId={sts_endpoint_id}"
+    steps:
+      - tab: "Subnets"
+    proves: "The endpoint has a network interface in each of the 2 private subnets"
+  - name: sts-endpoint-security-group
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#SecurityGroup:securityGroupId={sts_security_group_id}"
+    steps:
+      - tab: "Inbound rules"
+    proves: "The endpoint's own security group allows only HTTPS (443) from 10.0.0.0/16"
+  - name: s3-gateway-endpoint-routes
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#EndpointDetails:vpcEndpointId={s3_gateway_endpoint_id}"
+    steps:
+      - tab: "Route tables"
+    proves: "The S3 gateway endpoint is attached to both private route tables and the isolated one"
