@@ -1,0 +1,356 @@
+{
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "<ACCOUNT_ID>",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/role/elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-public-us-east-1a"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "public"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-098387fe70ad04e57",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-098387fe70ad04e57",
+            "State": "available",
+            "VpcId": "vpc-0df0769dbcdfef114",
+            "CidrBlock": "10.0.64.0/22",
+            "AvailableIpAddressCount": 1019,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az2",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "<ACCOUNT_ID>",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "kubernetes.io/role/elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-public-us-east-1b"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "public"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-00413b326477f7f1a",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-00413b326477f7f1a",
+            "State": "available",
+            "VpcId": "vpc-0df0769dbcdfef114",
+            "CidrBlock": "10.0.68.0/22",
+            "AvailableIpAddressCount": 1019,
+            "AvailabilityZone": "us-east-1b",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "<ACCOUNT_ID>",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1a"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "private"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "kubernetes.io/role/internal-elb",
+                    "Value": "1"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-0ebe5ada8f567452b",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-0ebe5ada8f567452b",
+            "State": "available",
+            "VpcId": "vpc-0df0769dbcdfef114",
+            "CidrBlock": "10.0.0.0/20",
+            "AvailableIpAddressCount": 4091,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az2",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "<ACCOUNT_ID>",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1b"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "private"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/role/internal-elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-03adf122297bfe44d",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-03adf122297bfe44d",
+            "State": "available",
+            "VpcId": "vpc-0df0769dbcdfef114",
+            "CidrBlock": "10.0.16.0/20",
+            "AvailableIpAddressCount": 4091,
+            "AvailabilityZone": "us-east-1b",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "<ACCOUNT_ID>",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated-us-east-1a"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "isolated"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-008863c3f87de9cfa",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-008863c3f87de9cfa",
+            "State": "available",
+            "VpcId": "vpc-0df0769dbcdfef114",
+            "CidrBlock": "10.0.128.0/22",
+            "AvailableIpAddressCount": 1019,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az2",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "<ACCOUNT_ID>",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "isolated"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated-us-east-1b"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-0ad69274cc2a6be89",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-0ad69274cc2a6be89",
+            "State": "available",
+            "VpcId": "vpc-0df0769dbcdfef114",
+            "CidrBlock": "10.0.132.0/22",
+            "AvailableIpAddressCount": 1019,
+            "AvailabilityZone": "us-east-1b",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}

@@ -1,0 +1,61 @@
+{
+  "private_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-0253f9a4735b492bf",
+      "subnet-02429b7d171a13306"
+    ]
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "s3_gateway_endpoint_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpce-0cd4ebbcb801eef4c"
+  },
+  "sts_endpoint_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpce-0d5e4ad6694029cac"
+  },
+  "sts_security_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-0c31568432123edbe"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "m1",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-0422ebd8e83576541"
+  }
+}

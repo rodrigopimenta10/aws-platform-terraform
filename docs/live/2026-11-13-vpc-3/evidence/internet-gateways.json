@@ -1,0 +1,40 @@
+{
+    "InternetGateways": [
+        {
+            "Attachments": [
+                {
+                    "State": "available",
+                    "VpcId": "vpc-0df0769dbcdfef114"
+                }
+            ],
+            "InternetGatewayId": "igw-0d028628ac201de13",
+            "OwnerId": "<ACCOUNT_ID>",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                }
+            ]
+        }
+    ]
+}
