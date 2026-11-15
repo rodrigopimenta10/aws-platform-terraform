@@ -1,0 +1,114 @@
+{
+  "availability_zones": {
+    "sensitive": false,
+    "type": [
+      "list",
+      "string"
+    ],
+    "value": [
+      "us-east-1a",
+      "us-east-1b"
+    ]
+  },
+  "internet_gateway_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "igw-025d2c895403c58e8"
+  },
+  "isolated_route_table_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "rtb-0cd0269b6204e06d4"
+  },
+  "isolated_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-0999c81951e7e4d02",
+      "subnet-0432e09d1a8d2a7db"
+    ]
+  },
+  "private_route_table_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "rtb-0b3e553c4389f1574",
+      "rtb-00ff60173415e5a26"
+    ]
+  },
+  "private_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-007692750d7a8ebf8",
+      "subnet-07707f2b7b3541521"
+    ]
+  },
+  "public_route_table_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "rtb-004799df01e2e750c"
+  },
+  "public_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-09f9338339c647993",
+      "subnet-018a27899514eaa9a"
+    ]
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "vpc",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-0239cd2d555d2c9a3"
+  }
+}

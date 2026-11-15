@@ -1,0 +1,40 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-0814cae044a21135f",
+            "IpPermissionsEgress": [],
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-default-unused"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                }
+            ],
+            "VpcId": "vpc-0239cd2d555d2c9a3",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:security-group/sg-0814cae044a21135f",
+            "OwnerId": "<ACCOUNT_ID>",
+            "GroupName": "default",
+            "Description": "default VPC security group",
+            "IpPermissions": []
+        }
+    ]
+}
