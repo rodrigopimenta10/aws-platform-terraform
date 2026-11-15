@@ -70,3 +70,13 @@ m1:
     steps:
       - tab: "Route tables"
     proves: "The S3 gateway endpoint is attached to both private route tables and the isolated one"
+  - name: vpc-flow-logs
+    url: "https://{region}.console.aws.amazon.com/vpcconsole/home?region={region}#VpcDetails:VpcId={vpc_id}"
+    steps:
+      - tab: "Flow logs"
+    proves: "A flow log on the VPC: filter ALL, destination type CloudWatch Logs, destination the platform-live-flow-logs log group, status Active"
+  - name: flow-log-group
+    url: "https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logsV2:log-groups$3FlogGroupNameFilter$3Dplatform-live-flow-logs"
+    steps:
+      - wait_for: "platform-live-flow-logs"
+    proves: "The log group /aws/vpc/flow-logs/platform-live-flow-logs with 1 year retention and a KMS key ID shown"

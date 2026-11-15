@@ -35,3 +35,13 @@ output "sts_security_group_id" {
   description = "ID of the STS endpoint's own security group."
   value       = module.vpc_endpoints.security_group_ids["sts"]
 }
+
+output "flow_log_group_name" {
+  description = "Name of the CloudWatch log group that receives the VPC flow log."
+  value       = module.vpc_flow_logs.log_group_name
+}
+
+output "flow_log_id" {
+  description = "ID of the VPC flow log."
+  value       = module.vpc_flow_logs.flow_log_id
+}

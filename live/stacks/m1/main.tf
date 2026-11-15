@@ -1,6 +1,6 @@
 # Live-drill stack "m1": the milestone 1 network, applied for real for the length of a drill, then destroyed.
 # Started only by .github/workflows/live-drill.yml. It grows with each M1 roadmap item (M1.3 adds the VPC
-# endpoints; flow logs and the envs/dev wiring come next).
+# endpoints, M1.4 adds the VPC flow logs; the envs/dev wiring comes next).
 #
 # Cheapest settings: 2 AZs, no NAT gateway (it bills every hour), and the interface endpoints in both
 # private subnets (the drill limit is 2 AZs). The VPC, subnets, route tables and the S3 gateway endpoint are
@@ -53,4 +53,19 @@ module "vpc_endpoints" {
   allowed_cidr_blocks = [module.vpc.vpc_cidr_block]
   subnet_ids          = module.vpc.private_subnet_ids # 2 subnets = 2 AZs, the plan gate's limit
   route_table_ids     = concat(module.vpc.private_route_table_ids, [module.vpc.isolated_route_table_id])
+}
+
+module "vpc_flow_logs" {
+  source = "../../../modules/vpc-flow-logs"
+
+  project     = "platform"
+  environment = "live"
+  owner       = var.owner
+
+  vpc_id = module.vpc.vpc_id
+
+  # Retention is the module default (one year, which checkov requires): the log group is destroyed minutes
+  # later, so it costs nothing. The shortest KMS deletion window keeps the key from lingering after destroy.
+  kms_deletion_window_in_days = 7
+  permissions_boundary        = var.permissions_boundary_arn
 }
