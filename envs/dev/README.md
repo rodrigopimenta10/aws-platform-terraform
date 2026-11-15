@@ -2,9 +2,12 @@
 
 The **root module** for the `dev` environment. A root module is the folder you run `terraform init/plan/apply`
 in. Reusable modules live in `modules/`; a root module wires them to a provider (which region and account to talk
-to) and to a state backend (where Terraform remembers what it created). Today it only calls
-[`labels`](../../modules/labels/) and configures the AWS provider, so it creates **no resources and costs nothing**.
-Later roadmap items add the VPC, EKS and more here.
+to) and to a state backend (where Terraform remembers what it created). It calls
+[`labels`](../../modules/labels/), configures the AWS provider and builds the milestone 1 network:
+[`vpc`](../../modules/vpc/), [`vpc-endpoints`](../../modules/vpc-endpoints/) and
+[`vpc-flow-logs`](../../modules/vpc-flow-logs/). **Applying it in a real account costs money**: the shared NAT
+gateway bills about $0.045 an hour (plus data), and the four interface endpoints in three AZs about
+$0.12 an hour. See [ADR 0004](../../docs/adr/0004-nat-gateway-strategy.md). Later roadmap items add EKS and more.
 
 ## Inputs
 
@@ -14,6 +17,10 @@ Later roadmap items add the VPC, EKS and more here.
 | `owner` | `string` | `"platform-team"` | Team or person responsible. No email addresses. |
 | `region` | `string` | `"us-east-1"` | AWS region. Must look like `us-east-1`. |
 | `components` | `set(string)` | `["vpc", "tfstate"]` | Components to build full names for. |
+| `vpc_cidr` | `string` | `"10.0.0.0/16"` | VPC address range. Validated by `modules/vpc`. |
+| `az_count` | `number` | `3` | Availability zones to use, 2 or 3. |
+| `single_nat_gateway` | `bool` | `true` | One shared NAT gateway (cheap) or one per AZ (highly available). |
+| `flow_log_retention_in_days` | `number` | `365` | Days CloudWatch keeps flow log records. |
 
 ## Outputs
 
@@ -24,6 +31,11 @@ Later roadmap items add the VPC, EKS and more here.
 | `prefix` | `<project>-dev`, for example `platform-dev`. |
 | `names` | Map of component to full resource name. |
 | `tags` | Standard tags, also applied through the provider's `default_tags`. |
+| `vpc_id`, `vpc_cidr_block` | The dev VPC. |
+| `public_subnet_ids`, `private_subnet_ids`, `isolated_subnet_ids` | Subnet IDs, one per AZ per tier. |
+| `private_route_table_ids` | One private route table per AZ. |
+| `nat_gateway_ids` | NAT gateway IDs (one by default). |
+| `flow_log_group_name` | CloudWatch log group receiving the flow logs. |
 
 ## Example
 
@@ -33,8 +45,8 @@ terraform init
 terraform plan -var owner=my-team
 ```
 
-(Planning needs AWS credentials only once the root module contains resources or data sources. This repo's
-checks never use real ones: see `scripts/check.sh`.)
+(Planning needs AWS credentials, because the VPC module looks up availability zones. This repo's checks
+never use real ones: they use a mock provider and Moto, see `scripts/check.sh`.)
 
 ## Bootstrapping state
 
@@ -70,6 +82,9 @@ This repo never runs these steps for you: it has no AWS account, only mock and M
 ## Testing
 
 `tests/unit.tftest.hcl` uses `mock_provider "aws"` with `command = plan` to check the default names and tags,
-that variables flow into `labels` and the provider region, and that a malformed `region` is rejected.
-There is no Moto test: the module has no resources to apply yet. The integration coverage for this root
-module arrives with M1.5 (VPC wired in).
+that variables flow into `labels` and the provider region, that dev gets 3 subnets per tier and one shared NAT
+gateway, that `single_nat_gateway = false` gives three, and that `az_count = 2` is respected.
+`tests/integration.tftest.hcl` overrides the provider to point at Moto and applies the whole root module. It
+asserts 3 + 3 + 3 subnets, one private route table per AZ, one NAT gateway (three with
+`single_nat_gateway = false`) and the flow log group name. A root module can only see its child modules'
+outputs, so the tests assert on root outputs rather than on resources inside modules.

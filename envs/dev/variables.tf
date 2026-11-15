@@ -26,3 +26,27 @@ variable "components" {
   type        = set(string)
   default     = ["vpc", "tfstate"]
 }
+
+variable "vpc_cidr" {
+  description = "IPv4 CIDR block of the dev VPC. Validated by modules/vpc (between /16 and /22)."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "az_count" {
+  description = "Number of availability zones for the VPC (2 or 3). Validated by modules/vpc."
+  type        = number
+  default     = 3
+}
+
+variable "single_nat_gateway" {
+  description = "true: one NAT gateway for all AZs (cheaper, dev default). false: one per AZ (highly available). See ADR 0004."
+  type        = bool
+  default     = true
+}
+
+variable "flow_log_retention_in_days" {
+  description = "Days CloudWatch keeps VPC flow log records. Validated by modules/vpc-flow-logs. Lower it (for example 30) to save storage cost in a scratch account."
+  type        = number
+  default     = 365
+}

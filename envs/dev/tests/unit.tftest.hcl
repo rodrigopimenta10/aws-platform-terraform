@@ -1,6 +1,30 @@
-# Unit tests: mock provider, plan only. The root module creates no resources yet, so these check
-# the wiring: labels inputs, outputs and variable validation. No Moto test: nothing to apply.
-mock_provider "aws" {}
+# Unit tests: mock provider, plan only. They check the wiring: labels inputs, the VPC modules'
+# inputs, outputs and variable validation. tests/integration.tftest.hcl applies it all against Moto.
+mock_provider "aws" {
+  mock_data "aws_availability_zones" {
+    defaults = {
+      names = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+    }
+  }
+
+  mock_data "aws_region" {
+    defaults = {
+      region = "us-east-1"
+    }
+  }
+
+  mock_data "aws_caller_identity" {
+    defaults = {
+      account_id = "123456789012"
+    }
+  }
+
+  mock_data "aws_partition" {
+    defaults = {
+      partition = "aws"
+    }
+  }
+}
 
 run "wires_labels_with_defaults" {
   command = plan
@@ -49,4 +73,44 @@ run "rejects_bad_region" {
   }
 
   expect_failures = [var.region]
+}
+
+run "wires_a_three_az_vpc_with_one_shared_nat_gateway" {
+  command = plan
+
+  assert {
+    condition     = output.vpc_cidr_block == "10.0.0.0/16" && length(output.public_subnet_ids) == 3
+    error_message = "Dev should get the default CIDR across 3 AZs."
+  }
+
+  assert {
+    condition     = length(output.nat_gateway_ids) == 1
+    error_message = "Dev shares a single NAT gateway by default."
+  }
+}
+
+run "one_nat_gateway_per_az_when_asked" {
+  command = plan
+
+  variables {
+    single_nat_gateway = false
+  }
+
+  assert {
+    condition     = length(output.nat_gateway_ids) == 3
+    error_message = "single_nat_gateway = false should give one NAT gateway per AZ."
+  }
+}
+
+run "two_azs" {
+  command = plan
+
+  variables {
+    az_count = 2
+  }
+
+  assert {
+    condition     = length(output.private_subnet_ids) == 2
+    error_message = "az_count should reach the VPC module."
+  }
 }
