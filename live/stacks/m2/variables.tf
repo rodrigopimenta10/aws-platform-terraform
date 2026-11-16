@@ -14,14 +14,3 @@ variable "owner" {
   type        = string
   default     = "platform-team"
 }
-
-variable "permissions_boundary_arn" {
-  description = "ARN of the IAM permissions boundary every role in this stack must carry. The live-drill workflow sets it through TF_VAR_permissions_boundary_arn; the drill role cannot create a role without it."
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.permissions_boundary_arn == null || can(regex("^arn:[a-z-]+:iam::[0-9]{12}:policy/.+$", var.permissions_boundary_arn))
-    error_message = "permissions_boundary_arn must be null or an IAM policy ARN."
-  }
-}
