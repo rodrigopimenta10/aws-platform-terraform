@@ -3,7 +3,7 @@
 A production-style AWS platform in Terraform: networking, identity, EKS, serverless, observability and
 CI/CD, built as reusable modules with tests.
 
-**Status:** M1 done (VPC, NAT strategy, endpoints, flow logs, wired into `envs/dev`). Roadmap item M2.1 is next. See [ROADMAP.md](ROADMAP.md).
+**Status:** M1 done. M2.1 done (`modules/kms`, drilled by `live/stacks/m2`). Roadmap item M2.2 is next. See [ROADMAP.md](ROADMAP.md).
 
 ## What's in it (when the roadmap is done)
 
