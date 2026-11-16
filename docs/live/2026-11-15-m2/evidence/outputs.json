@@ -1,0 +1,42 @@
+{
+  "kms_alias_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "alias/platform-live-logs"
+  },
+  "kms_key_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "22360b4a-2d61-41b6-abb9-57f4bcd4e2fb"
+  },
+  "log_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/aws/platform-live/app"
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "m2",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  }
+}
