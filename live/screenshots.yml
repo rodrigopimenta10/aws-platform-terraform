@@ -80,3 +80,20 @@ m1:
     steps:
       - wait_for: "platform-live-flow-logs"
     proves: "The log group /aws/vpc/flow-logs/platform-live-flow-logs with 1 year retention and a KMS key ID shown"
+m2:
+  - name: kms-key
+    url: "https://{region}.console.aws.amazon.com/kms/home?region={region}#/kms/keys/{kms_key_id}"
+    steps:
+      - wait_for: "platform-live-logs"
+    proves: "Customer-managed symmetric key with alias platform-live-logs, enabled, with automatic rotation shown as enabled"
+  - name: kms-key-policy
+    url: "https://{region}.console.aws.amazon.com/kms/home?region={region}#/kms/keys/{kms_key_id}"
+    steps:
+      - wait_for: "platform-live-logs"
+      - tab: "Key policy"
+    proves: "The key policy has the account root delegation statement and a CloudWatch Logs statement limited by an encryption context"
+  - name: log-group-uses-key
+    url: "https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logsV2:log-groups$3FlogGroupNameFilter$3Dplatform-live"
+    steps:
+      - wait_for: "/aws/platform-live/app"
+    proves: "The log group /aws/platform-live/app with 1 year retention and the drill KMS key ID shown"
