@@ -1,9 +1,11 @@
 # Live-drill stack "m2": the milestone 2 identity and security modules, applied for real for the length of a
 # drill, then destroyed. Started only by .github/workflows/live-drill.yml. It grows with each M2 roadmap item;
-# M2.1 adds the KMS key, shown in use by encrypting one CloudWatch log group.
+# M2.1 adds the KMS key, shown in use by encrypting one CloudWatch log group. M2.2 adds a GitHub OIDC deploy
+# role (the account's provider already exists from live/bootstrap, so it is not created again).
 #
 # Cost: a KMS key bills about $1 a month prorated by the hour (a fraction of a cent for a drill), and it is
-# scheduled for deletion after the shortest window (7 days). The empty log group is free.
+# scheduled for deletion after the shortest window (7 days). The empty log group and
+# the IAM role are free.
 
 locals {
   stack          = "m2"
@@ -58,4 +60,20 @@ resource "aws_cloudwatch_log_group" "app" {
   name              = local.log_group_name
   retention_in_days = 365 # checkov wants a year; the group lives minutes and is empty
   kms_key_id        = module.kms_logs.key_arn
+}
+
+# The role has no permissions attached and carries the drill boundary. It exists to show the trust policy:
+# only this repository's main branch can assume it. The account's GitHub provider comes from live/bootstrap
+# (AWS allows one per URL), hence create_provider = false.
+module "github_oidc" {
+  source = "../../../modules/github-oidc"
+
+  project           = "platform"
+  environment       = "live"
+  owner             = var.owner
+  github_repository = "rodrigopimenta10/aws-platform-terraform"
+
+  allowed_branches     = ["main"]
+  create_provider      = false
+  permissions_boundary = var.permissions_boundary_arn
 }

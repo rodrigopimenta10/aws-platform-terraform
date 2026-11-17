@@ -97,3 +97,8 @@ m2:
     steps:
       - wait_for: "/aws/platform-live/app"
     proves: "The log group /aws/platform-live/app with 1 year retention and the drill KMS key ID shown"
+  - name: github-role-trust
+    url: "https://{region}.console.aws.amazon.com/iam/home?region={region}#/roles/details/{github_role_name}?section=trust_relationships"
+    steps:
+      - wait_for: "platform-live-github-deploy"
+    proves: "Role platform-live-github-deploy trusts the GitHub OIDC provider with audience sts.amazonaws.com and only this repository's refs/heads/main as subject"

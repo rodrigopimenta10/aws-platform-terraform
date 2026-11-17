@@ -25,3 +25,13 @@ output "log_group_name" {
   description = "Name of the log group encrypted with the key."
   value       = aws_cloudwatch_log_group.app.name
 }
+
+output "github_role_name" {
+  description = "Name of the GitHub OIDC deploy role."
+  value       = module.github_oidc.role_name
+}
+
+output "github_role_arn" {
+  description = "ARN of the GitHub OIDC deploy role."
+  value       = module.github_oidc.role_arn
+}
