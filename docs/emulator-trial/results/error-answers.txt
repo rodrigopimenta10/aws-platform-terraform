@@ -1,0 +1,33 @@
+# Non-2xx answers, Moto
+36	EC2/DescribeRouteTables	400	InvalidRouteTableID.NotFound	The routeTable ID 'rtb-ID' does not exist
+8	EC2/DescribeSecurityGroups	400	InvalidGroup.NotFound	The security group '{'sg-ID'}' does not exist
+4	EC2/DescribeVpcs	400	InvalidVpcID.NotFound	VpcID {'vpc-ID'} does not exist.
+1	S3/GetBucketCors	404	NoSuchCORSConfiguration	The CORS configuration does not exist
+1	S3/GetBucketEncryption	404	ServerSideEncryptionConfigurationNotFoundError	The server side encryption configuration was not found
+2	S3/GetBucketLifecycleConfiguration	404	NoSuchLifecycleConfiguration	The lifecycle configuration does not exist
+1	S3/GetBucketOwnershipControls	404	OwnershipControlsNotFoundError	The bucket ownership controls were not found
+2	S3/GetBucketPolicy	404	NoSuchBucketPolicy	The bucket policy does not exist
+1	S3/GetBucketReplication	404	ReplicationConfigurationNotFoundError	The replication configuration was not found
+1	S3/GetBucketTagging	404	NoSuchTagSet	The TagSet does not exist
+1	S3/GetBucketWebsite	404	NoSuchWebsiteConfiguration	The specified bucket does not have a website configuration
+1	S3/GetObjectLockConfiguration	404	ObjectLockConfigurationNotFoundError	Object Lock configuration does not exist for this bucket
+1	S3/GetPublicAccessBlock	404	NoSuchPublicAccessBlockConfiguration	The public access block configuration was not found
+2	S3/HeadBucket	404	?	
+
+# Non-2xx answers, AWS Emulator
+36	EC2/DescribeRouteTables	400	InvalidRouteTableID.NotFound	The routeTable ID &apos;rtb-ID&apos; does not exist
+8	EC2/DescribeSecurityGroups	400	InvalidGroup.NotFound	The security group &apos;sg-ID&apos; does not exist
+20	EC2/DescribeVpcEndpoints	400	InvalidVpcEndpointId.NotFound	The Vpc Endpoint Id &apos;vpce-ID&apos; does not exist
+4	EC2/DescribeVpcs	400	InvalidVpcID.NotFound	The vpc ID &apos;vpc-ID&apos; does not exist
+4	EC2/DisassociateAddress	400	InvalidAssociationID.NotFound	The association ID &apos;eipassoc-ID&apos; does not exist
+4	EC2/ReplaceRoute	501	NotImplemented	operation ReplaceRoute is scaffolded but not implemented in this emulator
+8	EC2/RevokeSecurityGroupEgress	400	InvalidPermission.NotFound	The specified rule does not exist in this security group.
+1	S3/GetBucketCors	404	NoSuchCORSConfiguration	The CORS configuration does not exist
+2	S3/GetBucketLifecycleConfiguration	404	NoSuchLifecycleConfiguration	The lifecycle configuration does not exist
+1	S3/GetBucketOwnershipControls	404	OwnershipControlsNotFoundError	The bucket ownership controls were not found
+2	S3/GetBucketPolicy	404	NoSuchBucketPolicy	The bucket policy does not exist
+1	S3/GetBucketReplication	404	ReplicationConfigurationNotFoundError	The replication configuration was not found
+1	S3/GetBucketWebsite	404	NoSuchWebsiteConfiguration	The specified bucket does not have a website configuration
+1	S3/GetObjectLockConfiguration	404	ObjectLockConfigurationNotFoundError	Object Lock configuration does not exist for this bucket
+1	S3/GetPublicAccessBlock	404	NoSuchPublicAccessBlockConfiguration	The public access block configuration was not found
+2	S3/HeadBucket	404	?	

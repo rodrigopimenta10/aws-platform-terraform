@@ -1,0 +1,107 @@
+104 distinct operations, 1344 calls
+CloudWatch Logs	CreateLogGroup	200x2
+CloudWatch Logs	DeleteLogGroup	200x2
+CloudWatch Logs	DescribeLogGroups	200x3
+CloudWatch Logs	ListTagsForResource	200x3
+CloudWatch Logs	PutRetentionPolicy	200x2
+EC2	AllocateAddress	200x6
+EC2	AssociateRouteTable	200x30
+EC2	AttachInternetGateway	200x4
+EC2	AuthorizeSecurityGroupIngress	200x8
+EC2	CreateFlowLogs	200x2
+EC2	CreateInternetGateway	200x4
+EC2	CreateNatGateway	200x6
+EC2	CreateRoute	200x10
+EC2	CreateRouteTable	200x18
+EC2	CreateSecurityGroup	200x8
+EC2	CreateSubnet	200x30
+EC2	CreateTags	200x4
+EC2	CreateVpc	200x4
+EC2	CreateVpcEndpoint	200x10
+EC2	DeleteFlowLogs	200x2
+EC2	DeleteInternetGateway	200x4
+EC2	DeleteNatGateway	200x6
+EC2	DeleteRoute	200x10
+EC2	DeleteRouteTable	200x18
+EC2	DeleteSecurityGroup	200x8
+EC2	DeleteSubnet	200x30
+EC2	DeleteVpc	200x4
+EC2	DeleteVpcEndpoints	200x10
+EC2	DescribeAddresses	200x20
+EC2	DescribeAddressesAttribute	200x14
+EC2	DescribeAvailabilityZones	200x8
+EC2	DescribeFlowLogs	200x3
+EC2	DescribeInternetGateways	200x16
+EC2	DescribeNatGateways	200x32
+EC2	DescribeNetworkAcls	200x8
+EC2	DescribeNetworkInterfaces	200x70
+EC2	DescribePrefixLists	200x15
+EC2	DescribeRouteTables	200x314 400x36
+EC2	DescribeSecurityGroupRules	200x8
+EC2	DescribeSecurityGroups	200x72 400x8
+EC2	DescribeSubnets	200x96
+EC2	DescribeVpcAttribute	200x28
+EC2	DescribeVpcEndpoints	200x45
+EC2	DescribeVpcs	200x12 400x4
+EC2	DetachInternetGateway	200x4
+EC2	DisassociateAddress	200x4
+EC2	DisassociateRouteTable	200x30
+EC2	ModifyVpcAttribute	200x4
+EC2	ReleaseAddress	200x6
+EC2	ReplaceRoute	200x4
+EC2	RevokeSecurityGroupEgress	200x20
+EC2	RevokeSecurityGroupIngress	200x8
+IAM	CreateOpenIDConnectProvider	200x1
+IAM	CreateRole	200x3
+IAM	DeleteOpenIDConnectProvider	200x1
+IAM	DeleteRole	200x3
+IAM	DeleteRolePolicy	200x2
+IAM	GetOpenIDConnectProvider	200x1
+IAM	GetRole	200x4
+IAM	GetRolePolicy	200x6
+IAM	ListAttachedRolePolicies	200x4
+IAM	ListInstanceProfilesForRole	200x3
+IAM	ListRolePolicies	200x5
+IAM	PutRolePolicy	200x2
+KMS	CreateAlias	200x4
+KMS	CreateKey	200x4
+KMS	DeleteAlias	200x4
+KMS	DescribeKey	200x9
+KMS	EnableKeyRotation	200x4
+KMS	GetKeyPolicy	200x25
+KMS	GetKeyRotationStatus	200x25
+KMS	ListAliases	200x5
+KMS	ListResourceTags	200x25
+KMS	ScheduleKeyDeletion	200x4
+S3	CreateBucket	200x1
+S3	DeleteBucket	204x1
+S3	DeleteBucketEncryption	204x1
+S3	DeleteBucketLifecycle	204x1
+S3	DeleteBucketOwnershipControls	204x1
+S3	DeleteBucketPolicy	204x1
+S3	DeletePublicAccessBlock	204x1
+S3	GetBucketAccelerateConfiguration	200x1
+S3	GetBucketAcl	200x1
+S3	GetBucketCors	404x1
+S3	GetBucketEncryption	200x2 404x1
+S3	GetBucketLifecycleConfiguration	200x10 404x2
+S3	GetBucketLogging	200x1
+S3	GetBucketOwnershipControls	200x2 404x1
+S3	GetBucketPolicy	200x2 404x2
+S3	GetBucketReplication	404x1
+S3	GetBucketRequestPayment	200x1
+S3	GetBucketTagging	404x1
+S3	GetBucketVersioning	200x4
+S3	GetBucketWebsite	404x1
+S3	GetObjectLockConfiguration	404x1
+S3	GetPublicAccessBlock	200x2 404x1
+S3	HeadBucket	200x3 404x2
+S3	PutBucketEncryption	200x1
+S3	PutBucketLifecycleConfiguration	200x1
+S3	PutBucketOwnershipControls	200x1
+S3	PutBucketPolicy	200x1
+S3	PutBucketVersioning	200x2
+S3	PutPublicAccessBlock	200x1
+STS	GetCallerIdentity	200x6
+
+operations with a 5xx answer: 0
