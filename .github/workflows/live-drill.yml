@@ -7,7 +7,8 @@
 # Why this is safe without a human click (live/README.md has the full list):
 #   - only pushes to this repo's main can trigger it (fork and pull-request runs are refused below);
 #   - pushes that touch the drill machinery itself (protected paths) are refused, so a bad commit can't
-#     loosen the limits it runs under; those need Rodrigo to start a drill by hand;
+#     loosen the limits it runs under; those need Rodrigo to start a drill by hand, and every later push
+#     is refused too until that drill has passed (live/last-drill.sh);
 #   - live/plan-gate.sh refuses plans with forbidden resource types, big instances, many nodes or NATs;
 #   - the role (live/bootstrap) is boxed in by IAM denies and a permissions boundary that every role it
 #     creates must carry, an AWS budget action that cuts it off at the spend limit, and a 5 vCPU account quota;
@@ -102,19 +103,19 @@ jobs:
             else echo "::error::No stack live/stacks/$INPUT_STACK"; exit 1; fi
             reason="started by hand"
           else
-            # Changes since the last drill that succeeded (or the previous commit, the first time).
-            last="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow live-drill.yml --status success --limit 30 \
-              --json headSha,databaseId --jq '.[].headSha' | while read -r s; do
-                git merge-base --is-ancestor "$s" "$sha" 2>/dev/null && { echo "$s"; break; }; done)"
+            # Changes since the last drill that drilled something and passed (or the previous commit, the
+            # first time). A green run that drilled nothing does not count, so a push refused for changing
+            # protected paths stays in the comparison until a drill by hand has passed: live/last-drill.sh.
+            last="$(live/last-drill.sh "$sha")"
             base="${last:-$(git rev-parse "$sha~1")}"
             changed="$(git diff --name-only "$base" "$sha")"
             echo "Changed since ${base:0:12}:"; sed 's/^/  /' <<<"$changed"
             if [ "$GITHUB_EVENT_NAME" = workflow_run ] && grep -qE "$PROTECTED" <<<"$changed"; then
-              echo "::warning::This push changes the drill machinery (protected paths). Unattended drills refuse it; start one by hand to check the change."
+              echo "::warning::A change to the drill machinery (protected paths) has not been through a drill started by hand. Unattended drills refuse every push until one has passed."
               grep -E "$PROTECTED" <<<"$changed" | sed 's/^/  protected: /'
               echo 'stacks=[]' >> "$GITHUB_OUTPUT"
               echo "## Live drill skipped" >> "$GITHUB_STEP_SUMMARY"
-              echo "The push changes protected drill files; start a drill by hand after checking them." >> "$GITHUB_STEP_SUMMARY"
+              echo "Protected drill files changed since the last drill that passed. Check them, then start a drill by hand: unattended drills stay off until it passes." >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             picked=""
