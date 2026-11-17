@@ -16,7 +16,8 @@ that outlives a drill is a leak.
 | [`evidence.sh`](evidence.sh) | Read-only `describe` calls saved as JSON with the account ID replaced by `<ACCOUNT_ID>`. |
 | [`console-shots.mjs`](console-shots.mjs) | Headless Chromium on the runner, signed in through the AWS federation endpoint as the drill role; 2x screenshots with the account ID removed. |
 | [`summary.sh`](summary.sh), [`report.sh`](report.sh) | The run's job summary, and the committed report. |
-| [`verify-destroyed.sh`](verify-destroyed.sh) | After destroy: fails if anything tagged `live-stack=<stack>` still exists. |
+| [`verify-destroyed.sh`](verify-destroyed.sh) | After destroy: fails if anything tagged `live-stack=<stack>` still exists. Each resource the tag index lists is asked for from its own service, because the index trails deletes. A KMS key in `PendingDeletion` counts as destroyed: AWS keeps every deleted key for a waiting period (7 days here), unusable and not billed. |
+| [`tests/verify-destroyed-test.sh`](tests/verify-destroyed-test.sh) | Offline test of that check with a fake `aws` command; run by `scripts/check.sh`. |
 
 ## How a drill runs
 

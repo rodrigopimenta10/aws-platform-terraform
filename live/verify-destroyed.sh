@@ -8,10 +8,19 @@
 #   1. The Resource Groups Tagging API lists every resource with the stack's tags. It is an index, and it
 #      trails the deletes: on the first vpc drill (2026-11-12) it still listed two subnets and a security
 #      group more than ten minutes after `terraform destroy`, while EC2 said none of them existed.
-#   2. So each listed resource is asked for directly. For the EC2 types drills create (VPCs, subnets,
-#      route tables, gateways, security groups, NAT gateways, Elastic IPs, network ACLs), a deleted one
-#      answers "<Type>.NotFound". Anything else, including other services, counts as left over until the
-#      index drops it, so a real leftover is never missed.
+#   2. So each listed resource is asked for directly, from the service that owns it:
+#      - EC2 types drills create (VPCs, subnets, route tables, gateways, security groups and their rules,
+#        NAT gateways, Elastic IPs, network ACLs, VPC endpoints, flow logs): a deleted one answers
+#        "<Type>.NotFound", an empty list, or the state "deleted".
+#      - KMS keys: AWS never deletes a key at once. `terraform destroy` schedules the deletion, and the
+#        key then sits in the state PendingDeletion for the waiting period (7 days in the drill stacks),
+#        still tagged and still in the index. In that state it cannot be used and is not billed, and AWS
+#        removes it on its own, so it counts as destroyed and the date is printed. Any other state
+#        (Enabled, Disabled, a cancelled deletion) counts as left over.
+#      Anything else, including other services, counts as left over until the index drops it, so a real
+#      leftover is never missed. A lookup that fails (access denied, throttling) also counts as left over.
+#      The m1 and m2 drills of 2026-11-14 to 2026-11-17 failed here because endpoints, security group
+#      rules, flow logs and keys were not in this list: Terraform had destroyed all of them.
 # The whole check is retried for up to five minutes before failing.
 set -euo pipefail
 
@@ -23,10 +32,10 @@ interval="${VERIFY_INTERVAL_SECONDS:-30}"
 account="$(aws sts get-caller-identity --query Account --output text)"
 
 # Prints the ARN if the resource still exists (or cannot be checked), nothing if it is gone.
-# EC2 types that drills create are asked for directly; AWS answers "<Type>.NotFound" for a deleted one.
-# (EC2's own tag records trail deletes too: describe-tags still returned tags for two deleted subnets.)
+# EC2's own tag records trail deletes too (describe-tags still returned tags for two deleted subnets), so
+# each resource is described by ID. `out` holds the IDs that are left, or the error text of a failed call.
 still_there() {
-  local arn="$1" service type id out
+  local arn="$1" service type id out state deletion_date
   service="$(printf '%s' "$arn" | cut -d: -f3)"
   type="$(printf '%s' "$arn" | cut -d: -f6 | cut -d/ -f1)"
   id="${arn##*/}"
@@ -41,9 +50,27 @@ still_there() {
         [ -z "$out" ] && return 0 ;;
       elastic-ip) out="$(aws ec2 describe-addresses --region "$region" --allocation-ids "$id" 2>&1)" ;;
       network-acl) out="$(aws ec2 describe-network-acls --region "$region" --network-acl-ids "$id" 2>&1)" ;;
+      # A deleted interface endpoint can show as "deleted" for a while before EC2 forgets its ID.
+      vpc-endpoint) out="$(aws ec2 describe-vpc-endpoints --region "$region" --vpc-endpoint-ids "$id" --query 'VpcEndpoints[?State!=`deleted`].VpcEndpointId' --output text 2>&1)"
+        [ -z "$out" ] && return 0 ;;
+      security-group-rule) out="$(aws ec2 describe-security-group-rules --region "$region" --security-group-rule-ids "$id" --query 'SecurityGroupRules[].SecurityGroupRuleId' --output text 2>&1)"
+        [ -z "$out" ] && return 0 ;;
+      vpc-flow-log) out="$(aws ec2 describe-flow-logs --region "$region" --flow-log-ids "$id" --query 'FlowLogs[].FlowLogId' --output text 2>&1)"
+        [ -z "$out" ] && return 0 ;;
       *) out="" ;;
     esac
     if printf '%s' "$out" | grep -q '\.NotFound'; then
+      return 0
+    fi
+  elif [ "$service" = "kms" ] && [ "$type" = "key" ]; then
+    out="$(aws kms describe-key --region "$region" --key-id "$id" --query 'KeyMetadata.[KeyState,DeletionDate]' --output text 2>&1)"
+    if printf '%s' "$out" | grep -q 'NotFoundException'; then
+      return 0
+    fi
+    read -r state deletion_date <<<"$out" || true
+    if [ "$state" = "PendingDeletion" ]; then
+      # To the job log, not to the list of leftovers on stdout.
+      echo "verify: KMS key $id is scheduled for deletion (${deletion_date:-date unknown}); it cannot be used and is not billed until AWS removes it" >&2
       return 0
     fi
   fi
@@ -63,7 +90,7 @@ for i in $(seq 1 "$attempts"); do
   fi
   if [ -z "$left" ]; then
     if [ -n "$listed" ] && [ "$listed" != "None" ]; then
-      echo "verify: the tagging index still lists resources for live-stack=$stack, but EC2 says none of them exist"
+      echo "verify: the tagging index still lists resources for live-stack=$stack, but the services that own them say they are deleted or scheduled for deletion"
     fi
     echo "verify: nothing tagged live-stack=$stack remains in $region"
     exit 0
