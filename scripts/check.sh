@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs every check CI runs: fmt, the live-drill stack lists, the destroy-verification test (a fake `aws`
-# command, no network), validate, tflint, checkov, and `terraform test`
+# Runs every check CI runs: fmt, the live-drill stack lists, the two live-drill script tests (fake `aws`
+# and `gh` commands, no network), validate, tflint, checkov, and `terraform test`
 # (unit tests with mock providers + integration tests applied against a local Moto server).
 # Nothing here talks to real AWS.
 #
@@ -42,6 +42,9 @@ scripts/check-live-stacks.sh || fail=1
 
 step "live drill destroy verification (fake aws command)"
 live/tests/verify-destroyed-test.sh || fail=1
+
+step "live drill comparison commit (fake gh command)"
+live/tests/last-drill-test.sh || fail=1
 
 if [ ${#dirs[@]} -eq 0 ]; then
   echo "No Terraform modules yet. Nothing else to check."
