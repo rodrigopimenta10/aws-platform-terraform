@@ -1,0 +1,15 @@
+target	probe	verdict	seconds	first_error
+moto	s3-lifecycle-newer-noncurrent-versions	refused	182.9s	Error: creating S3 Bucket (emulator-trial-lifecycle-probe) Lifecycle Configuration
+moto	iam-attach-aws-managed-policy	refused	1.2s	Error: attaching IAM Policy (arn:aws:iam::aws:policy/ReadOnlyAccess) to IAM Role (emulator-trial-managed-policy-probe): operation error IAM: AttachRolePolicy, https response error StatusCode: 404, RequestID: phrC7Hhl2cbIXW0t9IaKQ9OSrFtYGHKQn3cve1VQdfAgiD8LUmYz, NoSuchEntity: Policy arn:aws:iam::aws:
+moto	kms-key-policy-unknown-principal	applied	5.3s	
+moto	iam-trust-policy-unknown-principal	applied	1.2s	
+moto	ec2-subnet-outside-vpc-cidr	refused	1.5s	Error: creating EC2 Subnet: operation error EC2: CreateSubnet, https response error StatusCode: 400, RequestID: lj06gUWBQuflhuNgsLPmk1Z7chINREQlfvMRkXmW9NyVumOmXUmk, api error InvalidSubnet.Range: The CIDR '192.168.0.0/24' is invalid.
+moto	ec2-nat-gateway-unknown-eip	refused	1.5s	Error: creating EC2 NAT Gateway: operation error EC2: CreateNatGateway, https response error StatusCode: 400, RequestID: lSVFjR6XzkYacTxRU47Q1mMdMBIQs8EDYWrxzosQC6T8Q3MFgQCr, api error InvalidAllocationID.NotFound: Allocation ID '['eipalloc-0123456789abcdef0']' not found.
+moto	s3-bucket-policy-wrong-resource	applied	1.3s	
+emulator	s3-lifecycle-newer-noncurrent-versions	applied	57.5s	
+emulator	iam-attach-aws-managed-policy	applied	1.2s	
+emulator	kms-key-policy-unknown-principal	applied	5.3s	
+emulator	iam-trust-policy-unknown-principal	refused	137.5s	Error: creating IAM Role (emulator-trial-trust-probe): operation error IAM: CreateRole, https response error StatusCode: 400, RequestID: b2506080-679d-4a74-bbff-a8c0af76ec0a, MalformedPolicyDocument: Invalid principal in policy: "AWS":"arn:aws:iam::000000000000:role/does-not-exist"
+emulator	ec2-subnet-outside-vpc-cidr	refused	1.2s	Error: creating EC2 Subnet: operation error EC2: CreateSubnet, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000001, api error InvalidSubnet.Range: The CIDR '192.168.0.0/24' is invalid.
+emulator	ec2-nat-gateway-unknown-eip	refused	1.2s	Error: creating EC2 NAT Gateway: operation error EC2: CreateNatGateway, https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000001, api error InvalidAllocationID.NotFound: The allocation ID 'eipalloc-0123456789abcdef0' does not exist
+emulator	s3-bucket-policy-wrong-resource	applied	1.2s	

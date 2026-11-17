@@ -1,0 +1,597 @@
+# modules_github-oidc
+## run "creates_provider_and_role_with_a_scoped_trust_policy": 1 resource(s) differ
+  data.aws_caller_identity.current
+      moto:     arn = "arn:aws:sts::ACCOUNT:user/moto"
+      emulator: arn = "arn:aws:iam::ACCOUNT:user/emulator"
+
+# modules_kms
+## run "creates_a_rotating_key_with_an_alias": 2 resource(s) differ
+  aws_kms_key.this
+      moto:     rotation_period_in_days = 0
+      emulator: rotation_period_in_days = 365
+  data.aws_caller_identity.current
+      moto:     arn = "arn:aws:sts::ACCOUNT:user/moto"
+      emulator: arn = "arn:aws:iam::ACCOUNT:user/emulator"
+
+# modules_state-backend
+## run "creates_state_backend": 4 resource(s) differ
+  aws_kms_key.state
+      moto:     rotation_period_in_days = 0
+      emulator: rotation_period_in_days = 365
+  aws_s3_bucket.state
+      moto:     id = "75aa57f09aa0c8caeab4f8c24e99d10f8e7faeebf76c078efc7c6caea54ba06a"
+      moto:     request_payer = null
+      moto:     tags = {}
+      moto:     tags_all = {}
+      emulator: "environment" = "dev"
+      emulator: "environment" = "dev"
+      emulator: "managed-by" = "terraform"
+      emulator: "managed-by" = "terraform"
+      emulator: "owner" = "platform-team"
+      emulator: "owner" = "platform-team"
+      emulator: "project" = "platform"
+      emulator: "project" = "platform"
+      emulator: apply_server_side_encryption_by_default {
+      emulator: bucket_key_enabled = false
+      emulator: id = "f7b11509f4d675c3c44f0dd37ca830bb02e8cfa58f04c46283c4bfcbdce1ff45"
+      emulator: kms_master_key_id = null
+      emulator: request_payer = "BucketOwner"
+      emulator: rule {
+      emulator: server_side_encryption_configuration {
+      emulator: sse_algorithm = "AES256"
+      emulator: tags = {
+      emulator: tags_all = {
+      emulator: }
+      emulator: }
+      emulator: }
+      emulator: }
+      emulator: }
+  aws_s3_bucket_server_side_encryption_configuration.state
+      moto:     blocked_encryption_types = []
+      emulator: "SSE-C",
+      emulator: ]
+      emulator: blocked_encryption_types = [
+  data.aws_caller_identity.current
+      moto:     arn = "arn:aws:sts::ACCOUNT:user/moto"
+      emulator: arn = "arn:aws:iam::ACCOUNT:user/emulator"
+
+# modules_vpc
+## run "creates_three_tier_network": 7 resource(s) differ
+  aws_eip.nat
+      moto:     network_border_group = null
+      moto:     network_border_group = null
+      moto:     network_border_group = null
+      moto:     public_dns = "ec2-127-18-148-85.compute-1.amazonaws.com"
+      moto:     public_dns = "ec2-127-219-76-150.compute-1.amazonaws.com"
+      moto:     public_dns = "ec2-127-73-137-115.compute-1.amazonaws.com"
+      moto:     public_ipv4_pool = null
+      moto:     public_ipv4_pool = null
+      moto:     public_ipv4_pool = null
+      emulator: network_border_group = "us-east-1"
+      emulator: network_border_group = "us-east-1"
+      emulator: network_border_group = "us-east-1"
+      emulator: public_dns = "ec2-54-0-0-2.compute-1.amazonaws.com"
+      emulator: public_dns = "ec2-54-0-0-3.compute-1.amazonaws.com"
+      emulator: public_dns = "ec2-54-0-0-4.compute-1.amazonaws.com"
+      emulator: public_ipv4_pool = "amazon"
+      emulator: public_ipv4_pool = "amazon"
+      emulator: public_ipv4_pool = "amazon"
+  aws_nat_gateway.this
+      moto:     availability_mode = null
+      moto:     availability_mode = null
+      moto:     availability_mode = null
+      emulator: association_id = "eipassoc-ID"
+      emulator: association_id = "eipassoc-ID"
+      emulator: association_id = "eipassoc-ID"
+      emulator: availability_mode = "zonal"
+      emulator: availability_mode = "zonal"
+      emulator: availability_mode = "zonal"
+      emulator: network_interface_id = "eni-ID"
+      emulator: network_interface_id = "eni-ID"
+      emulator: network_interface_id = "eni-ID"
+      emulator: private_ip = "IP"
+      emulator: private_ip = "IP"
+      emulator: private_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: secondary_private_ip_address_count = 0
+      emulator: secondary_private_ip_address_count = 0
+      emulator: secondary_private_ip_address_count = 0
+  aws_subnet.isolated
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  aws_subnet.private
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  aws_subnet.public
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  aws_vpc.this
+      moto:     dhcp_options_id = "default"
+      emulator: dhcp_options_id = "dopt-ID"
+  data.aws_availability_zones.available
+      moto:     "us-east-1d",
+      moto:     "us-east-1e",
+      moto:     "us-east-1f",
+      moto:     "use1-az4",
+      moto:     "use1-az5",
+      moto:     "use1-az6",
+      moto:     null,
+      emulator: "us-east-1-zg-1",
+## run "nat_per_az_routes_each_az_to_its_own_nat": 7 resource(s) differ
+  aws_eip.nat
+      moto:     network_border_group = null
+      moto:     network_border_group = null
+      moto:     network_border_group = null
+      moto:     private_dns = "ip-10-147-218-190.ec2.internal"
+      moto:     private_dns = "ip-10-203-220-62.ec2.internal"
+      moto:     private_dns = "ip-10-253-26-217.ec2.internal"
+      moto:     public_dns = "ec2-127-18-148-85.compute-1.amazonaws.com"
+      moto:     public_dns = "ec2-127-219-76-150.compute-1.amazonaws.com"
+      moto:     public_dns = "ec2-127-73-137-115.compute-1.amazonaws.com"
+      moto:     public_ipv4_pool = null
+      moto:     public_ipv4_pool = null
+      moto:     public_ipv4_pool = null
+      emulator: network_border_group = "us-east-1"
+      emulator: network_border_group = "us-east-1"
+      emulator: network_border_group = "us-east-1"
+      emulator: private_dns = "ip-10-0-64-4.ec2.internal"
+      emulator: private_dns = "ip-10-0-68-4.ec2.internal"
+      emulator: private_dns = "ip-10-0-72-4.ec2.internal"
+      emulator: public_dns = "ec2-54-0-0-2.compute-1.amazonaws.com"
+      emulator: public_dns = "ec2-54-0-0-3.compute-1.amazonaws.com"
+      emulator: public_dns = "ec2-54-0-0-4.compute-1.amazonaws.com"
+      emulator: public_ipv4_pool = "amazon"
+      emulator: public_ipv4_pool = "amazon"
+      emulator: public_ipv4_pool = "amazon"
+  aws_nat_gateway.this
+      moto:     availability_mode = null
+      moto:     availability_mode = null
+      moto:     availability_mode = null
+      emulator: association_id = "eipassoc-ID"
+      emulator: association_id = "eipassoc-ID"
+      emulator: association_id = "eipassoc-ID"
+      emulator: availability_mode = "zonal"
+      emulator: availability_mode = "zonal"
+      emulator: availability_mode = "zonal"
+      emulator: network_interface_id = "eni-ID"
+      emulator: network_interface_id = "eni-ID"
+      emulator: network_interface_id = "eni-ID"
+      emulator: private_ip = "IP"
+      emulator: private_ip = "IP"
+      emulator: private_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: secondary_private_ip_address_count = 0
+      emulator: secondary_private_ip_address_count = 0
+      emulator: secondary_private_ip_address_count = 0
+  aws_subnet.isolated
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  aws_subnet.private
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  aws_subnet.public
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  aws_vpc.this
+      moto:     dhcp_options_id = "default"
+      emulator: dhcp_options_id = "dopt-ID"
+  data.aws_availability_zones.available
+      moto:     "us-east-1d",
+      moto:     "us-east-1e",
+      moto:     "us-east-1f",
+      moto:     "use1-az4",
+      moto:     "use1-az5",
+      moto:     "use1-az6",
+      moto:     null,
+      emulator: "us-east-1-zg-1",
+## run "single_nat_shared_by_all_private_route_tables": no state from the emulator (run failed or was skipped)
+## run "no_nat_means_no_private_egress_route": no state from the emulator (run failed or was skipped)
+
+# modules_vpc-endpoints
+## run "network": 5 resource(s) differ
+  aws_subnet.isolated
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az2"
+  aws_subnet.private
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az2"
+  aws_subnet.public
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az2"
+  aws_vpc.this
+      moto:     dhcp_options_id = "default"
+      emulator: dhcp_options_id = "dopt-ID"
+  data.aws_availability_zones.available
+      moto:     "us-east-1d",
+      moto:     "us-east-1e",
+      moto:     "us-east-1f",
+      moto:     "use1-az4",
+      moto:     "use1-az5",
+      moto:     "use1-az6",
+      moto:     null,
+      emulator: "us-east-1-zg-1",
+## run "endpoints_on_the_vpc": 2 resource(s) differ
+  aws_vpc_endpoint.interface
+      moto:     Version = "2008-10-17"
+      moto:     Version = "2008-10-17"
+      moto:     Version = "2008-10-17"
+      moto:     Version = "2008-10-17"
+      moto:     dns_name = "vpce-ID-5ab25c62.com.amazonaws.us-east-1.ecr.dkr"
+      moto:     dns_name = "vpce-ID-7f4387bb.com.amazonaws.us-east-1.sts"
+      moto:     dns_name = "vpce-ID-8abcb828.com.amazonaws.us-east-1.ecr.api"
+      moto:     dns_name = "vpce-ID-eca72bd9.com.amazonaws.us-east-1.logs"
+      moto:     hosted_zone_id = "2478790159C16"
+      moto:     hosted_zone_id = "412A9C663E66C"
+      moto:     hosted_zone_id = "493DDED7A63C0"
+      moto:     hosted_zone_id = "D234D8F708224"
+      moto:     ip_address_type = null
+      moto:     ip_address_type = null
+      moto:     ip_address_type = null
+      moto:     ip_address_type = null
+      moto:     service_region = null
+      moto:     service_region = null
+      moto:     service_region = null
+      moto:     service_region = null
+      emulator: dns_name = "api.ecr.us-east-1.amazonaws.com"
+      emulator: dns_name = "api.ecr.us-east-1.api.aws"
+      emulator: dns_name = "dkr.ecr.us-east-1.amazonaws.com"
+      emulator: dns_name = "dkr.ecr.us-east-1.api.aws"
+      emulator: dns_name = "logs.us-east-1.amazonaws.com"
+      emulator: dns_name = "logs.us-east-1.api.aws"
+      emulator: dns_name = "sts.us-east-1.amazonaws.com"
+      emulator: dns_name = "sts.us-east-1.api.aws"
+      emulator: dns_name = "vpce-ID-m5rxqz2e-us-east-1a.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-m5rxqz2e-us-east-1b.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-m5rxqz2e.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst-us-east-1a.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst-us-east-1b.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-ooiil1ez-us-east-1a.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-ooiil1ez-us-east-1b.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-ooiil1ez.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-sc4bpfzy-us-east-1a.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-sc4bpfzy-us-east-1b.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-sc4bpfzy.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_options {
+      emulator: dns_options {
+      emulator: dns_options {
+      emulator: dns_options {
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: hosted_zone_id = "Z00000000000B8"
+      emulator: hosted_zone_id = "Z00000000000B8"
+      emulator: hosted_zone_id = "Z00000000000B8"
+      emulator: hosted_zone_id = "Z00000000000BD"
+      emulator: hosted_zone_id = "Z00000000000BD"
+      emulator: hosted_zone_id = "Z00000000000BD"
+      emulator: hosted_zone_id = "Z00000000000C3"
+      emulator: hosted_zone_id = "Z00000000000C3"
+      emulator: hosted_zone_id = "Z00000000000C3"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000C9"
+      emulator: hosted_zone_id = "Z00000000000CA"
+      emulator: hosted_zone_id = "Z00000000000CB"
+      emulator: hosted_zone_id = "Z00000000000CC"
+      emulator: hosted_zone_id = "Z00000000000CD"
+      emulator: hosted_zone_id = "Z00000000000CE"
+      emulator: hosted_zone_id = "Z00000000000CF"
+      emulator: hosted_zone_id = "Z00000000000D0"
+      emulator: ip_address_type = "ipv4"
+      emulator: ip_address_type = "ipv4"
+      emulator: ip_address_type = "ipv4"
+      emulator: ip_address_type = "ipv4"
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_preference = null
+      emulator: private_dns_preference = null
+      emulator: private_dns_preference = null
+      emulator: private_dns_preference = null
+      emulator: private_dns_specified_domains = []
+      emulator: private_dns_specified_domains = []
+      emulator: private_dns_specified_domains = []
+      emulator: private_dns_specified_domains = []
+      emulator: service_region = "us-east-1"
+      emulator: service_region = "us-east-1"
+      emulator: service_region = "us-east-1"
+      emulator: service_region = "us-east-1"
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: }
+      emulator: }
+      emulator: }
+      emulator: }
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+  aws_vpc_endpoint.s3
+      moto:     cidr_blocks = []
+      moto:     ip_address_type = null
+      moto:     service_region = null
+      emulator: "198.18.96.0/21",
+      emulator: ]
+      emulator: cidr_blocks = [
+      emulator: dns_options {
+      emulator: dns_record_ip_type = "service-defined"
+      emulator: ip_address_type = "ipv4"
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_preference = null
+      emulator: private_dns_specified_domains = []
+      emulator: service_region = "us-east-1"
+      emulator: }
+
+# modules_vpc-flow-logs
+## run "network": 5 resource(s) differ
+  aws_subnet.isolated
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az2"
+  aws_subnet.private
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az2"
+  aws_subnet.public
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az2"
+  aws_vpc.this
+      moto:     dhcp_options_id = "default"
+      emulator: dhcp_options_id = "dopt-ID"
+  data.aws_availability_zones.available
+      moto:     "us-east-1d",
+      moto:     "us-east-1e",
+      moto:     "us-east-1f",
+      moto:     "use1-az4",
+      moto:     "use1-az5",
+      moto:     "use1-az6",
+      moto:     null,
+      emulator: "us-east-1-zg-1",
+## run "flow_logs_on_the_vpc": 3 resource(s) differ
+  aws_cloudwatch_log_group.this
+      moto:     log_group_class = null
+      emulator: log_group_class = "STANDARD"
+  aws_kms_key.this
+      moto:     rotation_period_in_days = 0
+      emulator: rotation_period_in_days = 365
+  data.aws_caller_identity.current
+      moto:     arn = "arn:aws:sts::ACCOUNT:user/moto"
+      emulator: arn = "arn:aws:iam::ACCOUNT:user/emulator"
+
+# envs_dev
+## run "dev_network_has_the_expected_shape": 12 resource(s) differ
+  module.vpc.aws_eip.nat
+      moto:     network_border_group = null
+      moto:     public_dns = "ec2-127-184-101-155.compute-1.amazonaws.com"
+      moto:     public_ipv4_pool = null
+      emulator: network_border_group = "us-east-1"
+      emulator: public_dns = "ec2-54-0-0-2.compute-1.amazonaws.com"
+      emulator: public_ipv4_pool = "amazon"
+  module.vpc.aws_nat_gateway.this
+      moto:     availability_mode = null
+      emulator: association_id = "eipassoc-ID"
+      emulator: availability_mode = "zonal"
+      emulator: network_interface_id = "eni-ID"
+      emulator: private_ip = "IP"
+      emulator: public_ip = "IP"
+      emulator: secondary_private_ip_address_count = 0
+  module.vpc.aws_subnet.isolated
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  module.vpc.aws_subnet.private
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  module.vpc.aws_subnet.public
+      moto:     availability_zone_id = "use1-az6"
+      emulator: availability_zone_id = "use1-az3"
+  module.vpc.aws_vpc.this
+      moto:     dhcp_options_id = "default"
+      emulator: dhcp_options_id = "dopt-ID"
+  module.vpc.data.aws_availability_zones.available
+      moto:     "us-east-1d",
+      moto:     "us-east-1e",
+      moto:     "us-east-1f",
+      moto:     "use1-az4",
+      moto:     "use1-az5",
+      moto:     "use1-az6",
+      moto:     null,
+      emulator: "us-east-1-zg-1",
+  module.vpc_endpoints.aws_vpc_endpoint.interface
+      moto:     Version = "2008-10-17"
+      moto:     Version = "2008-10-17"
+      moto:     Version = "2008-10-17"
+      moto:     Version = "2008-10-17"
+      moto:     dns_name = "vpce-ID-8f4d26bc.com.amazonaws.us-east-1.logs"
+      moto:     dns_name = "vpce-ID-adff91d5.com.amazonaws.us-east-1.ecr.api"
+      moto:     dns_name = "vpce-ID-dbe948b4.com.amazonaws.us-east-1.sts"
+      moto:     dns_name = "vpce-ID-f83cca94.com.amazonaws.us-east-1.ecr.dkr"
+      moto:     hosted_zone_id = "05B72CACCE003"
+      moto:     hosted_zone_id = "1EC94963E4701"
+      moto:     hosted_zone_id = "9A946647E8300"
+      moto:     hosted_zone_id = "E2E0C508915B1"
+      moto:     ip_address_type = null
+      moto:     ip_address_type = null
+      moto:     ip_address_type = null
+      moto:     ip_address_type = null
+      moto:     service_region = null
+      moto:     service_region = null
+      moto:     service_region = null
+      moto:     service_region = null
+      emulator: dns_name = "api.ecr.us-east-1.amazonaws.com"
+      emulator: dns_name = "api.ecr.us-east-1.api.aws"
+      emulator: dns_name = "dkr.ecr.us-east-1.amazonaws.com"
+      emulator: dns_name = "dkr.ecr.us-east-1.api.aws"
+      emulator: dns_name = "logs.us-east-1.amazonaws.com"
+      emulator: dns_name = "logs.us-east-1.api.aws"
+      emulator: dns_name = "sts.us-east-1.amazonaws.com"
+      emulator: dns_name = "sts.us-east-1.api.aws"
+      emulator: dns_name = "vpce-ID-0ciydezx-us-east-1a.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-0ciydezx-us-east-1b.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-0ciydezx-us-east-1c.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-0ciydezx.api.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-cu8fjfmk-us-east-1a.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-cu8fjfmk-us-east-1b.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-cu8fjfmk-us-east-1c.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-cu8fjfmk.dkr.ecr.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst-us-east-1a.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst-us-east-1b.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst-us-east-1c.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-n04lvfst.logs.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-y42z16sn-us-east-1a.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-y42z16sn-us-east-1b.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-y42z16sn-us-east-1c.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_name = "vpce-ID-y42z16sn.sts.us-east-1.vpce.amazonaws.com"
+      emulator: dns_options {
+      emulator: dns_options {
+      emulator: dns_options {
+      emulator: dns_options {
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: dns_record_ip_type = "ipv4"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000C7"
+      emulator: hosted_zone_id = "Z00000000000CC"
+      emulator: hosted_zone_id = "Z00000000000CC"
+      emulator: hosted_zone_id = "Z00000000000CC"
+      emulator: hosted_zone_id = "Z00000000000CC"
+      emulator: hosted_zone_id = "Z00000000000D3"
+      emulator: hosted_zone_id = "Z00000000000D3"
+      emulator: hosted_zone_id = "Z00000000000D3"
+      emulator: hosted_zone_id = "Z00000000000D3"
+      emulator: hosted_zone_id = "Z00000000000D9"
+      emulator: hosted_zone_id = "Z00000000000D9"
+      emulator: hosted_zone_id = "Z00000000000D9"
+      emulator: hosted_zone_id = "Z00000000000D9"
+      emulator: hosted_zone_id = "Z00000000000DB"
+      emulator: hosted_zone_id = "Z00000000000DC"
+      emulator: hosted_zone_id = "Z00000000000DD"
+      emulator: hosted_zone_id = "Z00000000000DE"
+      emulator: hosted_zone_id = "Z00000000000DF"
+      emulator: hosted_zone_id = "Z00000000000E0"
+      emulator: hosted_zone_id = "Z00000000000E1"
+      emulator: hosted_zone_id = "Z00000000000E2"
+      emulator: ip_address_type = "ipv4"
+      emulator: ip_address_type = "ipv4"
+      emulator: ip_address_type = "ipv4"
+      emulator: ip_address_type = "ipv4"
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_preference = null
+      emulator: private_dns_preference = null
+      emulator: private_dns_preference = null
+      emulator: private_dns_preference = null
+      emulator: private_dns_specified_domains = []
+      emulator: private_dns_specified_domains = []
+      emulator: private_dns_specified_domains = []
+      emulator: private_dns_specified_domains = []
+      emulator: service_region = "us-east-1"
+      emulator: service_region = "us-east-1"
+      emulator: service_region = "us-east-1"
+      emulator: service_region = "us-east-1"
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: {
+      emulator: }
+      emulator: }
+      emulator: }
+      emulator: }
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+      emulator: },
+  module.vpc_endpoints.aws_vpc_endpoint.s3
+      moto:     cidr_blocks = []
+      moto:     ip_address_type = null
+      moto:     service_region = null
+      emulator: "198.18.96.0/21",
+      emulator: ]
+      emulator: cidr_blocks = [
+      emulator: dns_options {
+      emulator: dns_record_ip_type = "service-defined"
+      emulator: ip_address_type = "ipv4"
+      emulator: private_dns_only_for_inbound_resolver_endpoint = false
+      emulator: private_dns_preference = null
+      emulator: private_dns_specified_domains = []
+      emulator: service_region = "us-east-1"
+      emulator: }
+  module.vpc_flow_logs.aws_cloudwatch_log_group.this
+      moto:     log_group_class = null
+      emulator: log_group_class = "STANDARD"
+  module.vpc_flow_logs.aws_kms_key.this
+      moto:     rotation_period_in_days = 0
+      emulator: rotation_period_in_days = 365
+  module.vpc_flow_logs.data.aws_caller_identity.current
+      moto:     arn = "arn:aws:sts::ACCOUNT:user/moto"
+      emulator: arn = "arn:aws:iam::ACCOUNT:user/emulator"
+## run "each_az_gets_its_own_nat_gateway_when_single_is_off": no state from the emulator (run failed or was skipped)
+

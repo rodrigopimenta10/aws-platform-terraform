@@ -1,0 +1,80 @@
+target	pass	module	result	startup_s	init_s	test_s	summary
+moto	1	modules/github-oidc	pass	0.26	0.32	0.94	Success! 1 passed, 0 failed.
+moto	1	modules/kms	pass	0.26	0.31	13.05	Success! 1 passed, 0 failed.
+moto	1	modules/state-backend	pass	0.26	0.32	57.41	Success! 1 passed, 0 failed.
+moto	1	modules/vpc	pass	0.26	0.31	42.38	Success! 4 passed, 0 failed.
+moto	1	modules/vpc-endpoints	pass	0.26	0.32	17.20	Success! 2 passed, 0 failed.
+moto	1	modules/vpc-flow-logs	pass	0.26	0.32	13.94	Success! 2 passed, 0 failed.
+moto	1	envs/dev	pass	0.26	0.32	33.93	Success! 2 passed, 0 failed.
+emulator	1	modules/github-oidc	pass	0.47	0.32	0.90	Success! 1 passed, 0 failed.
+emulator	1	modules/kms	pass	0.33	0.32	13.02	Success! 1 passed, 0 failed.
+emulator	1	modules/state-backend	FAIL	0.52	0.94	58.22	Failure! 0 passed, 1 failed.
+emulator	1	modules/vpc	FAIL	0.46	0.34	42.18	Failure! 2 passed, 1 failed, 1 skipped.
+emulator	1	modules/vpc-endpoints	pass	0.33	0.31	16.67	Success! 2 passed, 0 failed.
+emulator	1	modules/vpc-flow-logs	pass	0.24	0.31	13.54	Success! 2 passed, 0 failed.
+emulator	1	envs/dev	FAIL	0.35	0.32	33.96	Failure! 1 passed, 1 failed.
+moto	2	modules/github-oidc	pass	0.38	0.32	1.12	Success! 1 passed, 0 failed.
+moto	2	modules/kms	pass	0.28	0.33	13.19	Success! 1 passed, 0 failed.
+moto	2	modules/state-backend	pass	0.26	0.30	57.40	Success! 1 passed, 0 failed.
+moto	2	modules/vpc	pass	0.27	0.32	42.68	Success! 4 passed, 0 failed.
+moto	2	modules/vpc-endpoints	pass	0.26	0.32	17.30	Success! 2 passed, 0 failed.
+moto	2	modules/vpc-flow-logs	pass	0.26	0.31	14.06	Success! 2 passed, 0 failed.
+moto	2	envs/dev	pass	0.26	0.32	34.18	Success! 2 passed, 0 failed.
+emulator	2	modules/github-oidc	pass	0.37	0.32	0.94	Success! 1 passed, 0 failed.
+emulator	2	modules/kms	pass	0.23	0.32	13.02	Success! 1 passed, 0 failed.
+emulator	2	modules/state-backend	FAIL	0.37	0.31	57.31	Failure! 0 passed, 1 failed.
+emulator	2	modules/vpc	FAIL	0.24	0.32	42.18	Failure! 2 passed, 1 failed, 1 skipped.
+emulator	2	modules/vpc-endpoints	pass	0.34	0.33	16.89	Success! 2 passed, 0 failed.
+emulator	2	modules/vpc-flow-logs	pass	0.35	0.32	13.65	Success! 2 passed, 0 failed.
+emulator	2	envs/dev	FAIL	0.25	0.33	34.18	Failure! 1 passed, 1 failed.
+moto	3	modules/github-oidc	pass	0.26	0.32	1.09	Success! 1 passed, 0 failed.
+moto	3	modules/kms	pass	0.26	0.33	13.21	Success! 1 passed, 0 failed.
+moto	3	modules/state-backend	pass	0.44	0.40	57.66	Success! 1 passed, 0 failed.
+moto	3	modules/vpc	pass	0.38	0.32	42.81	Success! 4 passed, 0 failed.
+moto	3	modules/vpc-endpoints	pass	0.26	0.31	17.31	Success! 2 passed, 0 failed.
+moto	3	modules/vpc-flow-logs	pass	0.26	0.32	14.09	Success! 2 passed, 0 failed.
+moto	3	envs/dev	pass	0.26	0.32	34.11	Success! 2 passed, 0 failed.
+emulator	3	modules/github-oidc	pass	0.36	0.32	0.94	Success! 1 passed, 0 failed.
+emulator	3	modules/kms	pass	0.24	0.31	13.06	Success! 1 passed, 0 failed.
+emulator	3	modules/state-backend	FAIL	0.35	0.32	57.30	Failure! 0 passed, 1 failed.
+emulator	3	modules/vpc	FAIL	0.34	0.32	42.17	Failure! 2 passed, 1 failed, 1 skipped.
+emulator	3	modules/vpc-endpoints	pass	0.34	0.32	16.85	Success! 2 passed, 0 failed.
+emulator	3	modules/vpc-flow-logs	pass	0.36	0.32	13.64	Success! 2 passed, 0 failed.
+emulator	3	envs/dev	FAIL	0.35	0.32	34.03	Failure! 1 passed, 1 failed.
+moto	4	modules/github-oidc	pass	0.26	0.35	1.16	Success! 1 passed, 0 failed.
+moto	4	modules/kms	pass	0.26	0.34	13.19	Success! 1 passed, 0 failed.
+moto	4	modules/state-backend	pass	0.26	0.34	57.50	Success! 1 passed, 0 failed.
+moto	4	modules/vpc	pass	0.26	0.35	42.89	Success! 4 passed, 0 failed.
+moto	4	modules/vpc-endpoints	pass	0.26	0.32	17.43	Success! 2 passed, 0 failed.
+moto	4	modules/vpc-flow-logs	pass	0.26	0.31	14.12	Success! 2 passed, 0 failed.
+moto	4	envs/dev	pass	0.26	0.32	34.26	Success! 2 passed, 0 failed.
+emulator	4	modules/github-oidc	pass	0.35	0.31	0.95	Success! 1 passed, 0 failed.
+emulator	4	modules/kms	pass	0.36	0.31	13.07	Success! 1 passed, 0 failed.
+emulator	4	modules/state-backend	FAIL	0.24	0.31	57.33	Failure! 0 passed, 1 failed.
+emulator	4	modules/vpc	FAIL	0.34	0.32	42.30	Failure! 2 passed, 1 failed, 1 skipped.
+emulator	4	modules/vpc-endpoints	pass	0.25	0.31	16.84	Success! 2 passed, 0 failed.
+emulator	4	modules/vpc-flow-logs	pass	0.35	0.32	13.62	Success! 2 passed, 0 failed.
+emulator	4	envs/dev	FAIL	0.22	0.33	34.01	Failure! 1 passed, 1 failed.
+moto	debug	modules/github-oidc	pass	0.26	0.31	1.08	Success! 1 passed, 0 failed.
+moto	debug	modules/kms	pass	0.26	0.33	13.13	Success! 1 passed, 0 failed.
+moto	debug	modules/state-backend	pass	0.26	0.32	57.43	Success! 1 passed, 0 failed.
+moto	debug	modules/vpc	pass	0.26	0.32	42.65	Success! 4 passed, 0 failed.
+moto	debug	modules/vpc-endpoints	pass	0.26	0.31	17.28	Success! 2 passed, 0 failed.
+moto	debug	modules/vpc-flow-logs	pass	0.27	0.32	14.04	Success! 2 passed, 0 failed.
+moto	debug	envs/dev	pass	0.26	0.32	34.12	Success! 2 passed, 0 failed.
+emulator	debug	modules/github-oidc	pass	0.35	0.32	0.94	Success! 1 passed, 0 failed.
+emulator	debug	modules/kms	pass	0.33	0.33	13.07	Success! 1 passed, 0 failed.
+emulator	debug	modules/state-backend	FAIL	0.23	0.32	57.33	Failure! 0 passed, 1 failed.
+emulator	debug	modules/vpc	FAIL	0.35	0.31	42.17	Failure! 2 passed, 1 failed, 1 skipped.
+emulator	debug	modules/vpc-endpoints	pass	0.23	0.31	16.86	Success! 2 passed, 0 failed.
+emulator	debug	modules/vpc-flow-logs	pass	0.24	0.32	13.66	Success! 2 passed, 0 failed.
+emulator	debug	envs/dev	FAIL	0.24	0.32	34.16	Failure! 1 passed, 1 failed.
+emulator	authoff	modules/github-oidc	pass	0.36	0.31	0.92	Success! 1 passed, 0 failed.
+emulator	authoff	modules/kms	pass	0.22	0.33	13.05	Success! 1 passed, 0 failed.
+emulator	authoff	modules/state-backend	FAIL	0.23	0.31	57.28	Failure! 0 passed, 1 failed.
+emulator	authoff	modules/vpc	FAIL	0.35	0.31	42.26	Failure! 2 passed, 1 failed, 1 skipped.
+emulator	authoff	modules/vpc-endpoints	pass	0.23	0.31	16.80	Success! 2 passed, 0 failed.
+emulator	authoff	modules/vpc-flow-logs	pass	0.35	0.32	13.65	Success! 2 passed, 0 failed.
+emulator	authoff	envs/dev	FAIL	0.34	0.32	34.10	Failure! 1 passed, 1 failed.
+emulator	align	modules/state-backend	pass	0.24	0.32	57.29	Success! 1 passed, 0 failed.
+emulator	droprun	modules/vpc	pass	0.44	1.84	23.73	Success! 3 passed, 0 failed.
