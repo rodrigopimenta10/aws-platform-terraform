@@ -43,7 +43,10 @@ this repository's `main`, can assume the role. On top of that:
    refused, including a fork's PR from a branch named `main`.
 2. **Protected paths:** a push that changes the drill machinery (`live/bootstrap/`, `live/*.sh`,
    `live/*.mjs`, `.github/`, `scripts/check-live-stacks.sh`, `.tool-versions`) is refused, so a bad commit
-   can't loosen the limits it runs under. Rodrigo checks such changes and starts a drill by hand.
+   can't loosen the limits it runs under. Rodrigo checks such changes and starts a drill by hand. Until
+   that drill has passed, every later push is refused as well: the push is compared with the last run
+   that drilled a stack and passed (`live/last-drill.sh`), and a run that refused a push drilled nothing.
+   Before 2026-11-17 a refusing run counted as the last drill, so the refusal held for one push only.
 3. **Plan gate:** at most 150 resources, 1 NAT gateway, 1 EKS cluster, 3 nodes in total, `t3`/`t3a`/`t4g` up
    to `large`, interface endpoints in at most 2 AZs, and no RDS, OpenSearch, SageMaker, dedicated hosts,
    reservations, spot fleets or transit gateways.
