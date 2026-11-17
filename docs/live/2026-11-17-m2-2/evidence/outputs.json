@@ -1,0 +1,52 @@
+{
+  "github_role_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:iam::<ACCOUNT_ID>:role/platform-live-github-deploy"
+  },
+  "github_role_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-github-deploy"
+  },
+  "kms_alias_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "alias/platform-live-logs"
+  },
+  "kms_key_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "f4d88bb7-2137-4f5c-881e-ff5aba017274"
+  },
+  "log_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/aws/platform-live/app"
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "m2",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  }
+}

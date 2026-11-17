@@ -1,0 +1,257 @@
+{
+    "RouteTables": [
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-097e27f9fac1ecaf6",
+                    "RouteTableId": "rtb-03608fa5e45225bde",
+                    "SubnetId": "subnet-02e70c19d55eecae5",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-01fc5cdaba001c01b",
+                    "RouteTableId": "rtb-03608fa5e45225bde",
+                    "SubnetId": "subnet-04757f7c671627da5",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-03608fa5e45225bde",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                }
+            ],
+            "VpcId": "vpc-093174ef814522c7b",
+            "OwnerId": "<ACCOUNT_ID>"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0fd04afdcd88418cc",
+                    "RouteTableId": "rtb-0b0b42de6e5eec854",
+                    "SubnetId": "subnet-00ceab1cd7505b4a4",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0fae2c72438078405",
+                    "RouteTableId": "rtb-0b0b42de6e5eec854",
+                    "SubnetId": "subnet-04de73a8a5bbe049c",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-0b0b42de6e5eec854",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                },
+                {
+                    "DestinationCidrBlock": "0.0.0.0/0",
+                    "GatewayId": "igw-0e0fd8d1cc82adcde",
+                    "Origin": "CreateRoute",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-public"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                }
+            ],
+            "VpcId": "vpc-093174ef814522c7b",
+            "OwnerId": "<ACCOUNT_ID>"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0775b55a6580808fd",
+                    "RouteTableId": "rtb-076bffd963f329d11",
+                    "SubnetId": "subnet-08dda841c6b63c04d",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-076bffd963f329d11",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1a"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                }
+            ],
+            "VpcId": "vpc-093174ef814522c7b",
+            "OwnerId": "<ACCOUNT_ID>"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": true,
+                    "RouteTableAssociationId": "rtbassoc-0bd5fee8a6d42cac1",
+                    "RouteTableId": "rtb-08541e58d1801eeba",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-08541e58d1801eeba",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                }
+            ],
+            "Tags": [],
+            "VpcId": "vpc-093174ef814522c7b",
+            "OwnerId": "<ACCOUNT_ID>"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0d3a6da231c88fc45",
+                    "RouteTableId": "rtb-038fff3cc772ac066",
+                    "SubnetId": "subnet-075790ae43b4feb7e",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-038fff3cc772ac066",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "live-stack",
+                    "Value": "vpc"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1b"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                }
+            ],
+            "VpcId": "vpc-093174ef814522c7b",
+            "OwnerId": "<ACCOUNT_ID>"
+        }
+    ]
+}

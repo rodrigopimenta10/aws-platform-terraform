@@ -1,0 +1,9 @@
+data.aws_caller_identity.current
+aws_cloudwatch_log_group.app
+module.github_oidc.data.aws_caller_identity.current
+module.github_oidc.data.aws_partition.current
+module.github_oidc.aws_iam_role.deploy
+module.kms_logs.data.aws_caller_identity.current
+module.kms_logs.data.aws_partition.current
+module.kms_logs.aws_kms_alias.this
+module.kms_logs.aws_kms_key.this
