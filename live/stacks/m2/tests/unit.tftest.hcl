@@ -14,6 +14,10 @@ mock_provider "aws" {
   }
 }
 
+variables {
+  permissions_boundary_arn = "arn:aws:iam::123456789012:policy/platform-live-drill-boundary"
+}
+
 run "key_and_log_group_follow_the_drill_conventions" {
   command = plan
 
@@ -41,4 +45,18 @@ run "rejects_a_malformed_region" {
   }
 
   expect_failures = [var.region]
+}
+
+run "worker_role_carries_the_drill_boundary" {
+  command = plan
+
+  assert {
+    condition     = output.worker_role_name == "platform-live-worker" && module.worker_role.permissions_boundary == "arn:aws:iam::123456789012:policy/platform-live-drill-boundary"
+    error_message = "The worker role should carry the boundary passed in by the workflow."
+  }
+
+  assert {
+    condition     = output.boundary_policy_name == "platform-live-boundary"
+    error_message = "The boundary policy follows the naming ADR."
+  }
 }

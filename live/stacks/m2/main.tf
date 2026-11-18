@@ -2,6 +2,7 @@
 # drill, then destroyed. Started only by .github/workflows/live-drill.yml. It grows with each M2 roadmap item;
 # M2.1 adds the KMS key, shown in use by encrypting one CloudWatch log group. M2.2 adds a GitHub OIDC deploy
 # role (the account's provider already exists from live/bootstrap, so it is not created again).
+# M2.3 adds a permissions boundary policy and a role created through modules/iam-role.
 #
 # Cost: a KMS key bills about $1 a month prorated by the hour (a fraction of a cent for a drill), and it is
 # scheduled for deletion after the shortest window (7 days). The empty log group and
@@ -75,5 +76,40 @@ module "github_oidc" {
 
   allowed_branches     = ["main"]
   create_provider      = false
+  permissions_boundary = var.permissions_boundary_arn
+}
+
+# M2.3: the permissions boundary module creates a boundary policy, and the role module creates a role that
+# must carry one. The drill role may only create roles carrying the boundary live/bootstrap made (its
+# DenyRolesWithoutTheBoundary compares the ARN), so the role uses var.permissions_boundary_arn, not the
+# policy below. The policy is created so the drill proves the module's document is accepted by IAM.
+module "iam_boundary" {
+  source = "../../../modules/iam-boundary"
+
+  project     = "platform"
+  environment = "live"
+  owner       = var.owner
+
+  allowed_services = ["logs", "kms", "s3"]
+}
+
+module "worker_role" {
+  source = "../../../modules/iam-role"
+
+  project     = "platform"
+  environment = "live"
+  owner       = var.owner
+  name        = "worker"
+  description = "Drill role with no permissions, created through modules/iam-role to show the boundary"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+
   permissions_boundary = var.permissions_boundary_arn
 }

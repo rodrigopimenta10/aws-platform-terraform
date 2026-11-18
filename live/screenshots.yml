@@ -102,3 +102,8 @@ m2:
     steps:
       - wait_for: "platform-live-github-deploy"
     proves: "Role platform-live-github-deploy trusts the GitHub OIDC provider with audience sts.amazonaws.com and only this repository's refs/heads/main as subject"
+  - name: worker-role-boundary
+    url: "https://{region}.console.aws.amazon.com/iam/home?region={region}#/roles/details/{worker_role_name}?section=permissions"
+    steps:
+      - wait_for: "platform-live-worker"
+    proves: "Role platform-live-worker has no permission policies and shows the permissions boundary platform-live-drill-boundary"

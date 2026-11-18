@@ -35,3 +35,13 @@ output "github_role_arn" {
   description = "ARN of the GitHub OIDC deploy role."
   value       = module.github_oidc.role_arn
 }
+
+output "boundary_policy_name" {
+  description = "Name of the boundary policy created by modules/iam-boundary."
+  value       = module.iam_boundary.policy_name
+}
+
+output "worker_role_name" {
+  description = "Name of the role created through modules/iam-role."
+  value       = module.worker_role.role_name
+}
