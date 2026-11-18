@@ -3,7 +3,7 @@
 A production-style AWS platform in Terraform: networking, identity, EKS, serverless, observability and
 CI/CD, built as reusable modules with tests.
 
-**Status:** M1 done. M2.1 done (`modules/kms`) and M2.2 done (`modules/github-oidc`), both drilled by `live/stacks/m2`. Roadmap item M2.3 is next. See [ROADMAP.md](ROADMAP.md).
+**Status:** M1 done. M2.1 (`modules/kms`), M2.2 (`modules/github-oidc`) and M2.3 (`modules/iam-boundary`, `modules/iam-role`) done, drilled by `live/stacks/m2`. Roadmap item M2.4 is next. See [ROADMAP.md](ROADMAP.md).
 
 ## What's in it (when the roadmap is done)
 
@@ -11,7 +11,7 @@ CI/CD, built as reusable modules with tests.
 |---|---|---|
 | Foundations | S3 remote state with native locking, KMS | `modules/state-backend`, `modules/labels` |
 | Network | VPC across 3 AZs, NAT, VPC endpoints, flow logs | `modules/vpc` |
-| Identity and security | IAM, GitHub Actions OIDC, permission boundaries, KMS | `modules/github-oidc`, `modules/kms` |
+| Identity and security | IAM, GitHub Actions OIDC, permission boundaries, KMS | `modules/github-oidc`, `modules/iam-boundary`, `modules/iam-role`, `modules/kms` |
 | Containers | ECR, EKS with managed node groups, add-ons, Pod Identity | `modules/ecr`, `modules/eks` |
 | Kubernetes platform | Helm, Argo CD, AWS Load Balancer Controller | `platform/` |
 | Serverless and data | Lambda, API Gateway, SQS with DLQ, DynamoDB | `modules/api-lambda`, `modules/queue`, `modules/table` |
