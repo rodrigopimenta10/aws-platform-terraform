@@ -17,6 +17,22 @@ mock_provider "aws" {
       partition = "aws"
     }
   }
+
+  # The flow log points at a log group and a role by ARN, and the AWS provider checks that both
+  # values are ARNs. A mock provider makes up a random string for a value only AWS would know.
+  # Under OpenTofu 1.13 the plan then failed with "invalid ARN" for both; under Terraform 1.17 it
+  # did not. With these two stand-ins the tests pass under both tools.
+  mock_resource "aws_cloudwatch_log_group" {
+    defaults = {
+      arn = "arn:aws:logs:us-east-1:123456789012:log-group:/aws/vpc/flow-logs/platform-dev-flow-logs"
+    }
+  }
+
+  mock_resource "aws_iam_role" {
+    defaults = {
+      arn = "arn:aws:iam::123456789012:role/platform-dev-flow-logs"
+    }
+  }
 }
 
 variables {
