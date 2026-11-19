@@ -60,3 +60,12 @@ run "worker_role_carries_the_drill_boundary" {
     error_message = "The boundary policy follows the naming ADR."
   }
 }
+
+run "account_baseline_is_on" {
+  command = plan
+
+  assert {
+    condition     = output.ebs_encryption_by_default_enabled == "true"
+    error_message = "The drill should turn EBS encryption by default on."
+  }
+}

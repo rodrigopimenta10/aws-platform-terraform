@@ -107,3 +107,18 @@ m2:
     steps:
       - wait_for: "platform-live-worker"
     proves: "Role platform-live-worker has no permission policies and shows the permissions boundary platform-live-drill-boundary"
+  - name: ebs-default-encryption
+    url: "https://{region}.console.aws.amazon.com/ec2/home?region={region}#Settings:tab=dataProtectionAndSecurity"
+    steps:
+      - wait_for: "EBS encryption"
+    proves: "EC2 settings, Data protection and security: Always encrypt new EBS volumes is Enabled"
+  - name: s3-account-public-access
+    url: "https://s3.console.aws.amazon.com/s3/settings?region={region}"
+    steps:
+      - wait_for: "Block Public Access settings for this account"
+    proves: "S3 Block public access (account settings): all four settings On"
+  - name: iam-password-policy
+    url: "https://{region}.console.aws.amazon.com/iam/home?region={region}#/account_settings"
+    steps:
+      - wait_for: "Password policy"
+    proves: "IAM account settings show the password policy: 14 characters minimum, 90 day expiry, reuse prevention of 24"

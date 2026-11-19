@@ -45,3 +45,8 @@ output "worker_role_name" {
   description = "Name of the role created through modules/iam-role."
   value       = module.worker_role.role_name
 }
+
+output "ebs_encryption_by_default_enabled" {
+  description = "Whether EBS encryption by default is on in the drill region."
+  value       = tostring(module.account_baseline.ebs_encryption_by_default_enabled)
+}

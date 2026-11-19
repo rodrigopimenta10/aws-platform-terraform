@@ -3,10 +3,11 @@
 # M2.1 adds the KMS key, shown in use by encrypting one CloudWatch log group. M2.2 adds a GitHub OIDC deploy
 # role (the account's provider already exists from live/bootstrap, so it is not created again).
 # M2.3 adds a permissions boundary policy and a role created through modules/iam-role.
+# M2.4 adds the account baseline: EBS default encryption, the S3 account public access block, a password policy.
 #
 # Cost: a KMS key bills about $1 a month prorated by the hour (a fraction of a cent for a drill), and it is
 # scheduled for deletion after the shortest window (7 days). The empty log group and
-# the IAM role are free.
+# the IAM role and the account baseline settings are free.
 
 locals {
   stack          = "m2"
@@ -112,4 +113,11 @@ module "worker_role" {
   })
 
   permissions_boundary = var.permissions_boundary_arn
+}
+
+# M2.4: account baseline. These are account-wide singletons (one EBS default, one S3 account block, one
+# password policy), so the drill turns them on for its length and destroy turns them off again. If the
+# account already had any of them, the drill's destroy resets it to AWS's default.
+module "account_baseline" {
+  source = "../../../modules/account-baseline"
 }
