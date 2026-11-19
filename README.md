@@ -3,7 +3,7 @@
 A production-style AWS platform in Terraform: networking, identity, EKS, serverless, observability and
 CI/CD, built as reusable modules with tests.
 
-**Status:** M1 done. M2.1 (`modules/kms`), M2.2 (`modules/github-oidc`) and M2.3 (`modules/iam-boundary`, `modules/iam-role`) done, drilled by `live/stacks/m2`. Roadmap item M2.4 is next. See [ROADMAP.md](ROADMAP.md).
+**Status:** M1 done. M2 done: M2.1 (`modules/kms`), M2.2 (`modules/github-oidc`), M2.3 (`modules/iam-boundary`, `modules/iam-role`) and M2.4 (`modules/account-baseline`), drilled by `live/stacks/m2`. Roadmap item M3.1 is next. See [ROADMAP.md](ROADMAP.md).
 
 ## What's in it (when the roadmap is done)
 
