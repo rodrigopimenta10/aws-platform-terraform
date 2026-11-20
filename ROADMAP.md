@@ -33,7 +33,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 - [x] **M2.4** (S) Account baseline: `aws_ebs_encryption_by_default`, S3 account-level public access block, IAM password policy.
 
 ## M3: Containers
-- [ ] **M3.1** (M) `modules/ecr`: repositories with scan-on-push, immutable tags, KMS encryption and a lifecycle policy that keeps the last N images.
+- [x] **M3.1** (M) `modules/ecr`: repositories with scan-on-push, immutable tags, KMS encryption and a lifecycle policy that keeps the last N images.
 - [ ] **M3.2** (L) `modules/eks`: cluster with a private API endpoint (public optional, CIDR-restricted), control-plane logging, secrets encryption with KMS, and the access-entries authentication mode.
 - [ ] **M3.3** (M) Managed node groups: on-demand and spot groups, launch template with IMDSv2 required, labels and taints.
 - [ ] **M3.4** (M) EKS add-ons: vpc-cni, coredns, kube-proxy, ebs-csi-driver, with versions pinned by variable.
