@@ -1,0 +1,91 @@
+{
+    "ResourceTagMappingList": [
+        {
+            "ResourceARN": "arn:aws:kms:us-east-1:<ACCOUNT_ID>:key/cbf064ff-c2dd-4947-8f67-d40f4c77def2",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-ecr"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ecr:us-east-1:<ACCOUNT_ID>:repository/platform-live-worker",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-worker"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ecr:us-east-1:<ACCOUNT_ID>:repository/platform-live-api",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-api"
+                }
+            ]
+        }
+    ]
+}

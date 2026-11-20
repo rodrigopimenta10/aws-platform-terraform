@@ -1,0 +1,8 @@
+module.ecr.aws_ecr_lifecycle_policy.this["api"]
+module.ecr.aws_ecr_lifecycle_policy.this["worker"]
+module.ecr.aws_ecr_repository.this["api"]
+module.ecr.aws_ecr_repository.this["worker"]
+module.kms_ecr.data.aws_caller_identity.current
+module.kms_ecr.data.aws_partition.current
+module.kms_ecr.aws_kms_alias.this
+module.kms_ecr.aws_kms_key.this

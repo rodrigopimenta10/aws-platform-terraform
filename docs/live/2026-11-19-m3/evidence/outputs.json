@@ -1,0 +1,42 @@
+{
+  "ecr_api_repository_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-api"
+  },
+  "ecr_worker_repository_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-worker"
+  },
+  "kms_key_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "cbf064ff-c2dd-4947-8f67-d40f4c77def2"
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "m3",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  }
+}
