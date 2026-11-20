@@ -122,3 +122,14 @@ m2:
     steps:
       - wait_for: "Password policy"
     proves: "IAM account settings show the password policy: 14 characters minimum, 90 day expiry, reuse prevention of 24"
+m3:
+  - name: ecr-repositories
+    url: "https://{region}.console.aws.amazon.com/ecr/private-registry/repositories?region={region}"
+    steps:
+      - wait_for: "platform-live-api"
+    proves: "Private repositories platform-live-api and platform-live-worker, both with Immutable tag mutability and KMS encryption"
+  - name: ecr-key
+    url: "https://{region}.console.aws.amazon.com/kms/home?region={region}#/kms/keys/{kms_key_id}"
+    steps:
+      - wait_for: "platform-live-ecr"
+    proves: "The customer-managed key alias platform-live-ecr that encrypts both repositories, enabled, with automatic rotation shown as enabled"
