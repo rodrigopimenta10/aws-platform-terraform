@@ -1,0 +1,6 @@
+{
+    "EnableDnsSupport": {
+        "Value": true
+    },
+    "VpcId": "vpc-0a10c541d9cb9ab9f"
+}
