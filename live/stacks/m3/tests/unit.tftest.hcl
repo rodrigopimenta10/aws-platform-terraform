@@ -13,11 +13,33 @@ mock_provider "aws" {
     }
   }
 
+  mock_data "aws_availability_zones" {
+    defaults = {
+      names = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+    }
+  }
+
+  mock_data "aws_region" {
+    defaults = {
+      region = "us-east-1"
+    }
+  }
+
+  mock_resource "aws_iam_role" {
+    defaults = {
+      arn = "arn:aws:iam::123456789012:role/platform-live-eks-cluster"
+    }
+  }
+
   mock_resource "aws_kms_key" {
     defaults = {
       arn = "arn:aws:kms:us-east-1:123456789012:key/11111111-2222-3333-4444-555555555555"
     }
   }
+}
+
+variables {
+  permissions_boundary_arn = "arn:aws:iam::123456789012:policy/platform-live-boundary"
 }
 
 run "repositories_follow_the_drill_conventions" {
@@ -31,6 +53,25 @@ run "repositories_follow_the_drill_conventions" {
   assert {
     condition     = output.tags["environment"] == "live" && output.tags["live-stack"] == "m3" && output.tags["project"] == "platform"
     error_message = "Every resource should carry the live tags plus live-stack = m3."
+  }
+}
+
+run "eks_cluster_fits_the_drill_limits" {
+  command = plan
+
+  assert {
+    condition     = output.eks_cluster_name == "platform-live-eks"
+    error_message = "The cluster should be named platform-live-eks (ADR 0002); the log group grant and the VPC tags rely on it."
+  }
+
+  assert {
+    condition     = length(module.vpc.eks_subnet_ids) == 2 && length(module.vpc.nat_gateway_ids) == 0
+    error_message = "Two private subnets for the control plane and no NAT gateway."
+  }
+
+  assert {
+    condition     = module.eks.log_group_name == "/aws/eks/platform-live-eks/cluster"
+    error_message = "The log group name must match the one the KMS grant is limited to."
   }
 }
 

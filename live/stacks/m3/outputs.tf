@@ -24,3 +24,18 @@ output "ecr_worker_repository_name" {
   description = "Name of the worker repository."
   value       = module.ecr.repository_names["worker"]
 }
+
+output "eks_cluster_name" {
+  description = "Name of the EKS cluster."
+  value       = module.eks.cluster_name
+}
+
+output "eks_kms_key_id" {
+  description = "ID of the drill KMS key that encrypts the cluster's Secrets and logs."
+  value       = module.kms_eks.key_id
+}
+
+output "vpc_id" {
+  description = "ID of the VPC the cluster runs in."
+  value       = module.vpc.vpc_id
+}
