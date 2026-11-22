@@ -1,0 +1,71 @@
+{
+  "flow_log_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/aws/vpc/flow-logs/platform-live-flow-logs"
+  },
+  "flow_log_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "fl-0a2f1b5461048ca16"
+  },
+  "private_subnet_ids": {
+    "sensitive": false,
+    "type": [
+      "tuple",
+      [
+        "string",
+        "string"
+      ]
+    ],
+    "value": [
+      "subnet-0f0144e84d43a61db",
+      "subnet-0cbeeaa968058f343"
+    ]
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "s3_gateway_endpoint_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpce-00cfd38d48d3afc1a"
+  },
+  "sts_endpoint_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpce-05ec4416f7f7a9c68"
+  },
+  "sts_security_group_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "sg-05b7f66aae4495b2d"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "m1",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-0738d728f4c3c5e5d"
+  }
+}

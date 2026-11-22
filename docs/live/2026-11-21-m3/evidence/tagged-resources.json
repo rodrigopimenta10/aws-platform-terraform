@@ -1,0 +1,938 @@
+{
+    "ResourceTagMappingList": [
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:security-group/sg-00aefd9d1c1444d02",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-default-unused"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-05b79cf96c5aa1abf",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "isolated"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:launch-template/lt-0166f3a63b940c932",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:route-table/rtb-0b895faa72397e995",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:kms:us-east-1:<ACCOUNT_ID>:key/cbf064ff-c2dd-4947-8f67-d40f4c77def2",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-ecr"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:kms:us-east-1:<ACCOUNT_ID>:key/7f2cb4b5-1adc-4813-851f-adec6a10827f",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-eks"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-0e1416cab5cd1e832",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "isolated"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated-us-east-1b"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:kms:us-east-1:<ACCOUNT_ID>:key/6b48b741-e941-4f8b-8515-8965c4fbf91b",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-ecr"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:route-table/rtb-0053887ed83c4d784",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:route-table/rtb-0735f0ce58cc8148f",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-public"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-00a2fb662e27b521e",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "isolated"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-isolated-us-east-1b"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ecr:us-east-1:<ACCOUNT_ID>:repository/platform-live-worker",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-worker"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:eks:us-east-1:<ACCOUNT_ID>:nodegroup/platform-live-eks/platform-live-nodes-batch/dcd10075-67cb-2f8e-8cad-810e4f523f07",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-nodes-batch"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:kms:us-east-1:<ACCOUNT_ID>:key/573cea8d-db22-4dea-9407-b865b90734a0",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-eks"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:internet-gateway/igw-0a5d04bcfbfd42023",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:launch-template/lt-0c37f071f2c65065e",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:natgateway/nat-0131557f8f5126dbe",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:eks:us-east-1:<ACCOUNT_ID>:cluster/platform-live-eks",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-eks"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:eks:us-east-1:<ACCOUNT_ID>:nodegroup/platform-live-eks/platform-live-nodes-system/e8d10075-67ca-e8a7-2f02-5b5946444c5c",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-nodes-system"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:route-table/rtb-02b98f275dcce4604",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1b"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:vpc/vpc-0d0369539a50a6a32",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:logs:us-east-1:<ACCOUNT_ID>:log-group:/aws/eks/platform-live-eks/cluster",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-eks-logs"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-034db93d956052489",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "private"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/cluster/platform-live-eks",
+                    "Value": "shared"
+                },
+                {
+                    "Key": "kubernetes.io/role/internal-elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ecr:us-east-1:<ACCOUNT_ID>:repository/platform-live-api",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-api"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-0d199417ed6dd3579",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "public"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/cluster/platform-live-eks",
+                    "Value": "shared"
+                },
+                {
+                    "Key": "kubernetes.io/role/elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-public-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:elastic-ip/eipalloc-06395fbc2b62f439e",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-nat-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-03e4a9370b2736801",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "public"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/cluster/platform-live-eks",
+                    "Value": "shared"
+                },
+                {
+                    "Key": "kubernetes.io/role/elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-public-us-east-1b"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-0e201322975513c03",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "private"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/cluster/platform-live-eks",
+                    "Value": "shared"
+                },
+                {
+                    "Key": "kubernetes.io/role/internal-elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1a"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:ec2:us-east-1:<ACCOUNT_ID>:subnet/subnet-0da9c15bfe657372c",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "tier",
+                    "Value": "private"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "kubernetes.io/cluster/platform-live-eks",
+                    "Value": "shared"
+                },
+                {
+                    "Key": "kubernetes.io/role/internal-elb",
+                    "Value": "1"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-vpc-private-us-east-1b"
+                }
+            ]
+        },
+        {
+            "ResourceARN": "arn:aws:kms:us-east-1:<ACCOUNT_ID>:key/18bb1ace-c92e-4a91-b5e6-2a05ae049f24",
+            "Tags": [
+                {
+                    "Key": "owner",
+                    "Value": "platform-team"
+                },
+                {
+                    "Key": "environment",
+                    "Value": "live"
+                },
+                {
+                    "Key": "managed-by",
+                    "Value": "terraform"
+                },
+                {
+                    "Key": "live-stack",
+                    "Value": "m3"
+                },
+                {
+                    "Key": "project",
+                    "Value": "platform"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "platform-live-ecr"
+                }
+            ]
+        }
+    ]
+}
