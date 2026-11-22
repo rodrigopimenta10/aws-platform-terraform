@@ -13,8 +13,12 @@ M3.2 adds [`modules/eks`](../../../modules/eks/): a small VPC ([`modules/vpc`](.
 gateway), a second KMS key (`platform-live-eks`, for Secrets and control-plane logs) and the cluster
 `platform-live-eks` with a private endpoint, all five log types and no nodes or access entries.
 
+M3.3 adds [`modules/eks-node-group`](../../../modules/eks-node-group/): a NAT gateway so private nodes can reach the
+internet, an on-demand group `platform-live-nodes-system` (one `t3.small` node, up to 2) and a spot group
+`platform-live-nodes-batch` scaled to zero (up to 1). Together at most 3 nodes, which is the plan gate's limit.
+
 **Cost:** empty repositories are free; the keys are a fraction of a cent for a drill. The EKS control plane is
-$0.10 an hour, so a 20 to 40 minute drill costs a few cents. Creating a cluster takes about 10 minutes and
+$0.10 an hour, the NAT gateway $0.045 and the one node about $0.02, so a 30 to 50 minute drill costs a few cents. Creating a cluster takes about 10 minutes and
 deleting it a few more.
 
 ## Inputs
@@ -28,7 +32,7 @@ deleting it a few more.
 ## Outputs
 
 `region`, `tags`, `kms_key_id`, `ecr_api_repository_name`, `ecr_worker_repository_name`, `eks_cluster_name`,
-`eks_kms_key_id`, `vpc_id`. The console links in
+`eks_kms_key_id`, `vpc_id`, `eks_node_group_names`, `eks_system_node_group_name`. The console links in
 `live/screenshots.yml` use them.
 
 The workflow exports `TF_VAR_permissions_boundary_arn`; the cluster's IAM role must carry that boundary, so it is

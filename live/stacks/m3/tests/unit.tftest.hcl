@@ -65,13 +65,27 @@ run "eks_cluster_fits_the_drill_limits" {
   }
 
   assert {
-    condition     = length(module.vpc.eks_subnet_ids) == 2 && length(module.vpc.nat_gateway_ids) == 0
-    error_message = "Two private subnets for the control plane and no NAT gateway."
+    condition     = length(module.vpc.eks_subnet_ids) == 2 && length(module.vpc.nat_gateway_ids) == 1
+    error_message = "Two private subnets and exactly one NAT gateway: nodes need a way out, and the plan gate allows one."
   }
 
   assert {
     condition     = module.eks.log_group_name == "/aws/eks/platform-live-eks/cluster"
     error_message = "The log group name must match the one the KMS grant is limited to."
+  }
+}
+
+run "node_groups_fit_the_drill_limits" {
+  command = plan
+
+  assert {
+    condition     = output.eks_system_node_group_name == "platform-live-nodes-system" && length(output.eks_node_group_names) == 2
+    error_message = "One system group and one batch group, named platform-live-nodes-<key>; the console links use the name."
+  }
+
+  assert {
+    condition     = alltrue([for k, g in module.nodes.node_group_names : can(regex("^platform-live-nodes-", g))])
+    error_message = "Node groups should follow the labels module naming."
   }
 }
 

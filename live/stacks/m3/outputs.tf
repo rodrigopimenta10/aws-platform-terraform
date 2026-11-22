@@ -39,3 +39,13 @@ output "vpc_id" {
   description = "ID of the VPC the cluster runs in."
   value       = module.vpc.vpc_id
 }
+
+output "eks_node_group_names" {
+  description = "Map of node group key to node group name, for the console links."
+  value       = module.nodes.node_group_names
+}
+
+output "eks_system_node_group_name" {
+  description = "Name of the on-demand node group that runs a node during the drill."
+  value       = module.nodes.node_group_names["system"]
+}

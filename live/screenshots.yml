@@ -149,3 +149,15 @@ m3:
     steps:
       - wait_for: "platform-live-eks"
     proves: "The customer-managed key alias platform-live-eks, enabled, with automatic rotation shown as enabled"
+  - name: eks-compute
+    url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}?region={region}"
+    steps:
+      - wait_for: "platform-live-eks"
+      - tab: "Compute"
+      - wait_for: "platform-live-nodes-system"
+    proves: "Node groups platform-live-nodes-system (On-Demand) and platform-live-nodes-batch (Spot), the first Active with one node"
+  - name: eks-node-group
+    url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}/nodegroups/{eks_system_node_group_name}?region={region}"
+    steps:
+      - wait_for: "platform-live-nodes-system"
+    proves: "Node group platform-live-nodes-system is Active on t3.small with scaling 1 to 2, the workload=system label and the node-group launch template"

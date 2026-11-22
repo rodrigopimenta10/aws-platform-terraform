@@ -1,11 +1,13 @@
 # Live-drill stack "m3": the milestone 3 container modules, applied for real for the length of a drill, then
 # destroyed. Started only by .github/workflows/live-drill.yml. It grows with each M3 roadmap item;
 # M3.1 adds two ECR repositories encrypted with a drill KMS key. M3.2 adds an EKS control plane in a small VPC.
+# M3.3 adds managed node groups (one running on-demand node, one spot group scaled to zero) and a NAT gateway.
 #
 # Cost: repositories and the lifecycle policies are free while empty. Each KMS key bills about $1 a month
 # prorated by the hour (a fraction of a cent for a drill) and is scheduled for deletion after 7 days.
 # The EKS control plane is the one real charge: $0.10 an hour, so a drill of 20 to 40 minutes costs a few cents.
-# The VPC has no NAT gateway and there are no nodes, so nothing else bills by the hour.
+# M3.3 adds one NAT gateway ($0.045 an hour) and one t3.small node (about $0.02 an hour), plus its 30 GiB
+# volume (fractions of a cent). The spot group is scaled to zero, so it costs nothing. A drill is a few cents.
 
 data "aws_caller_identity" "current" {}
 
@@ -59,8 +61,9 @@ module "ecr" {
   }
 }
 
-# A small network for the control plane: 2 AZs, no NAT gateway (the control plane and, until M3.3, the
-# lack of nodes mean nothing needs outbound internet). The cluster name tag lets EKS discover the subnets.
+# A small network for the cluster: 2 AZs and one NAT gateway. The nodes sit in private subnets and need a way
+# out to pull the default add-on images and reach the EC2 and ECR APIs; the NAT gateway is the cheapest one.
+# The cluster name tag lets EKS discover the subnets.
 module "vpc" {
   source = "../../../modules/vpc"
 
@@ -69,7 +72,8 @@ module "vpc" {
   owner       = var.owner
   az_count    = 2
 
-  enable_nat_gateway = false
+  enable_nat_gateway = true
+  single_nat_gateway = true
   eks_cluster_names  = [local.cluster_name]
 }
 
@@ -96,7 +100,7 @@ module "kms_eks" {
   deletion_window_in_days = 7
 }
 
-# Private endpoint only (the module default), all five log types, no nodes yet. access_entries is empty:
+# Private endpoint only (the module default), all five log types. access_entries is empty:
 # nobody needs kubectl during a drill, and the creator gets no hidden admin rights.
 module "eks" {
   source = "../../../modules/eks"
@@ -109,4 +113,44 @@ module "eks" {
   logs_kms_key_arn     = module.kms_eks.key_arn
   permissions_boundary = var.permissions_boundary_arn
   log_retention_days   = 365 # the module's default; stated here because the group lives minutes
+}
+
+# Worker nodes. "system" is one on-demand t3.small that really joins the cluster (the drill waits for the
+# group to turn ACTIVE, which proves the launch template, the role and the network all work). "batch" is a
+# spot group scaled to zero: it proves the spot and taint settings are accepted without starting a node.
+# Together they allow 3 nodes at most, which is the plan gate's limit. Root volumes use the AWS-managed
+# aws/ebs key: the drill role's EC2 permissions cover it and no key policy is needed.
+# There is no depends_on = [module.vpc]: it would make every data source in the module wait for apply. The
+# nodes already wait for the cluster, which takes about 10 minutes, long after the NAT route exists.
+module "nodes" {
+  source = "../../../modules/eks-node-group"
+
+  project              = "platform"
+  environment          = "live"
+  owner                = var.owner
+  cluster_name         = module.eks.cluster_name
+  subnet_ids           = module.vpc.eks_subnet_ids
+  permissions_boundary = var.permissions_boundary_arn
+
+  node_groups = {
+    system = {
+      instance_types = ["t3.small"]
+      min_size       = 1
+      desired_size   = 1
+      max_size       = 2
+      disk_size_gib  = 20
+      labels         = { workload = "system" }
+    }
+
+    batch = {
+      capacity_type  = "SPOT"
+      instance_types = ["t3.small", "t3a.small"]
+      min_size       = 0
+      desired_size   = 0
+      max_size       = 1
+      disk_size_gib  = 20
+      labels         = { workload = "batch" }
+      taints         = [{ key = "spot", value = "true", effect = "NO_SCHEDULE" }]
+    }
+  }
 }
