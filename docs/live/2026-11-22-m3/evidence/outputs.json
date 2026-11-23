@@ -1,0 +1,96 @@
+{
+  "ecr_api_repository_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-api"
+  },
+  "ecr_worker_repository_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-worker"
+  },
+  "eks_addon_versions": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "aws-ebs-csi-driver": "string",
+        "coredns": "string",
+        "eks-pod-identity-agent": "string",
+        "kube-proxy": "string",
+        "vpc-cni": "string"
+      }
+    ],
+    "value": {
+      "aws-ebs-csi-driver": "v1.68.1-eksbuild.1",
+      "coredns": "v1.12.4-eksbuild.82",
+      "eks-pod-identity-agent": "v1.4.1-eksbuild.3",
+      "kube-proxy": "v1.33.10-eksbuild.69",
+      "vpc-cni": "v1.22.4-eksbuild.14"
+    }
+  },
+  "eks_cluster_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-eks"
+  },
+  "eks_kms_key_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "833ad335-50d8-45a0-b89a-241b0251e1bf"
+  },
+  "eks_node_group_names": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "batch": "string",
+        "system": "string"
+      }
+    ],
+    "value": {
+      "batch": "platform-live-nodes-batch",
+      "system": "platform-live-nodes-system"
+    }
+  },
+  "eks_system_node_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "platform-live-nodes-system"
+  },
+  "kms_key_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "4a3c9f75-cf14-4a12-9790-81e21bb5ea51"
+  },
+  "region": {
+    "sensitive": false,
+    "type": "string",
+    "value": "us-east-1"
+  },
+  "tags": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "environment": "string",
+        "live-stack": "string",
+        "managed-by": "string",
+        "owner": "string",
+        "project": "string"
+      }
+    ],
+    "value": {
+      "environment": "live",
+      "live-stack": "m3",
+      "managed-by": "terraform",
+      "owner": "platform-team",
+      "project": "platform"
+    }
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-0ecc2f40def8f0b41"
+  }
+}
