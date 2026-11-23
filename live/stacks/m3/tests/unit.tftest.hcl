@@ -19,6 +19,12 @@ mock_provider "aws" {
     }
   }
 
+  mock_data "aws_eks_addon_version" {
+    defaults = {
+      version = "v1.0.0-eksbuild.1"
+    }
+  }
+
   mock_data "aws_region" {
     defaults = {
       region = "us-east-1"
@@ -86,6 +92,20 @@ run "node_groups_fit_the_drill_limits" {
   assert {
     condition     = alltrue([for k, g in module.nodes.node_group_names : can(regex("^platform-live-nodes-", g))])
     error_message = "Node groups should follow the labels module naming."
+  }
+}
+
+run "addons_fit_on_the_one_drill_node" {
+  command = plan
+
+  assert {
+    condition     = toset(keys(module.addons.addon_arns)) == toset(["vpc-cni", "coredns", "kube-proxy", "eks-pod-identity-agent", "aws-ebs-csi-driver"])
+    error_message = "The drill installs the five add-ons of M3.4."
+  }
+
+  assert {
+    condition     = length(keys(output.eks_addon_versions)) == 5
+    error_message = "The stack reports every installed add-on's version, for the drill evidence."
   }
 }
 

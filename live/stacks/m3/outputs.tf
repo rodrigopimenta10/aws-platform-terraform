@@ -49,3 +49,8 @@ output "eks_system_node_group_name" {
   description = "Name of the on-demand node group that runs a node during the drill."
   value       = module.nodes.node_group_names["system"]
 }
+
+output "eks_addon_versions" {
+  description = "Map of add-on name to the version installed."
+  value       = module.addons.addon_versions
+}

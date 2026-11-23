@@ -2,18 +2,23 @@
 # destroyed. Started only by .github/workflows/live-drill.yml. It grows with each M3 roadmap item;
 # M3.1 adds two ECR repositories encrypted with a drill KMS key. M3.2 adds an EKS control plane in a small VPC.
 # M3.3 adds managed node groups (one running on-demand node, one spot group scaled to zero) and a NAT gateway.
+# M3.4 adds the five EKS add-ons and a Pod Identity role for the EBS CSI driver.
 #
 # Cost: repositories and the lifecycle policies are free while empty. Each KMS key bills about $1 a month
 # prorated by the hour (a fraction of a cent for a drill) and is scheduled for deletion after 7 days.
 # The EKS control plane is the one real charge: $0.10 an hour, so a drill of 20 to 40 minutes costs a few cents.
 # M3.3 adds one NAT gateway ($0.045 an hour) and one t3.small node (about $0.02 an hour), plus its 30 GiB
 # volume (fractions of a cent). The spot group is scaled to zero, so it costs nothing. A drill is a few cents.
+# M3.4 adds nothing billable: add-ons are free and their pods run on the one node.
 
 data "aws_caller_identity" "current" {}
 
 locals {
   stack        = "m3"
   cluster_name = "platform-live-eks" # <project>-<environment>-<name> from modules/labels
+
+  # One place for the Kubernetes minor version, so the control plane and the add-on lookups cannot disagree.
+  kubernetes_version = "1.33"
 }
 
 module "labels" {
@@ -113,6 +118,7 @@ module "eks" {
   logs_kms_key_arn     = module.kms_eks.key_arn
   permissions_boundary = var.permissions_boundary_arn
   log_retention_days   = 365 # the module's default; stated here because the group lives minutes
+  kubernetes_version   = local.kubernetes_version
 }
 
 # Worker nodes. "system" is one on-demand t3.small that really joins the cluster (the drill waits for the
@@ -151,6 +157,50 @@ module "nodes" {
       disk_size_gib  = 20
       labels         = { workload = "batch" }
       taints         = [{ key = "spot", value = "true", effect = "NO_SCHEDULE" }]
+    }
+  }
+}
+
+# The add-ons. A real stack writes the versions out (see modules/eks-addons/README.md). A drill asks EKS for
+# each add-on's default version for this Kubernetes minor instead: version numbers cannot be checked offline,
+# and a stale pin would fail the whole drill. Pods are cut to one replica each so everything fits on the one
+# t3.small node (11 pods at most).
+locals {
+  addon_names = ["vpc-cni", "coredns", "kube-proxy", "eks-pod-identity-agent", "aws-ebs-csi-driver"]
+}
+
+data "aws_eks_addon_version" "this" {
+  for_each = toset(local.addon_names)
+
+  addon_name         = each.key
+  kubernetes_version = local.kubernetes_version
+  most_recent        = false # the version EKS marks as the default for this Kubernetes minor
+}
+
+# Add-ons need nodes (CoreDNS stays Degraded without them). A depends_on on the whole module would make its
+# data sources wait for apply, which breaks the plan, so the dependency is carried by a value instead: this
+# resource only exists once the node groups do, and the add-ons take the cluster name from it.
+resource "terraform_data" "nodes_ready" {
+  input            = module.eks.cluster_name
+  triggers_replace = module.nodes.node_group_arns
+}
+
+module "addons" {
+  source = "../../../modules/eks-addons"
+
+  project              = "platform"
+  environment          = "live"
+  owner                = var.owner
+  cluster_name         = terraform_data.nodes_ready.output
+  permissions_boundary = var.permissions_boundary_arn
+
+  addons = {
+    for name in local.addon_names : name => {
+      version = data.aws_eks_addon_version.this[name].version
+      configuration_values = lookup({
+        coredns              = jsonencode({ replicaCount = 1 })
+        "aws-ebs-csi-driver" = jsonencode({ controller = { replicaCount = 1 } })
+      }, name, null)
     }
   }
 }

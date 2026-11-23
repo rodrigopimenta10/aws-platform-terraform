@@ -161,3 +161,10 @@ m3:
     steps:
       - wait_for: "platform-live-nodes-system"
     proves: "Node group platform-live-nodes-system is Active on t3.small with scaling 1 to 2, the workload=system label and the node-group launch template"
+  - name: eks-addons
+    url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}?region={region}"
+    steps:
+      - wait_for: "platform-live-eks"
+      - tab: "Add-ons"
+      - wait_for: "aws-ebs-csi-driver"
+    proves: "Add-ons vpc-cni, coredns, kube-proxy, eks-pod-identity-agent and aws-ebs-csi-driver are installed, Active and on the versions the stack pinned"
