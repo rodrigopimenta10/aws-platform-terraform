@@ -36,7 +36,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 - [x] **M3.1** (M) `modules/ecr`: repositories with scan-on-push, immutable tags, KMS encryption and a lifecycle policy that keeps the last N images.
 - [x] **M3.2** (L) `modules/eks`: cluster with a private API endpoint (public optional, CIDR-restricted), control-plane logging, secrets encryption with KMS, and the access-entries authentication mode.
 - [x] **M3.3** (M) Managed node groups: on-demand and spot groups, launch template with IMDSv2 required, labels and taints.
-- [ ] **M3.4** (M) EKS add-ons: vpc-cni, coredns, kube-proxy, ebs-csi-driver, with versions pinned by variable.
+- [x] **M3.4** (M) EKS add-ons: vpc-cni, coredns, kube-proxy, ebs-csi-driver, with versions pinned by variable.
 - [ ] **M3.5** (M) EKS Pod Identity: an association and role for one example workload. ADR 0005 comparing it with IRSA.
 - [ ] **M3.6** (S) IAM policies for the AWS Load Balancer Controller and Karpenter, as a module consumers can attach.
 
