@@ -14,7 +14,7 @@ variable "owner" {
 }
 
 variable "name" {
-  description = "Workload name; the role is called <project>-<environment>-<name>-role. Lowercase letters, digits and hyphens."
+  description = "Workload name; the role is called <project>-<environment>-<name>. Lowercase letters, digits and hyphens."
   type        = string
 
   validation {
