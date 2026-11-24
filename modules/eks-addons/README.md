@@ -49,7 +49,7 @@ module "addons" {
 
   addons = {
     "vpc-cni"                = { version = "v1.19.5-eksbuild.1" }
-    "kube-proxy"             = { version = "v1.33.0-eksbuild.2" }
+    "kube-proxy"             = { version = "v1.35.0-eksbuild.2" }
     "eks-pod-identity-agent" = { version = "v1.3.7-eksbuild.2" }
     "coredns"                = { version = "v1.12.1-eksbuild.2", configuration_values = jsonencode({ replicaCount = 2 }) }
     "aws-ebs-csi-driver"     = { version = "v1.45.0-eksbuild.2" }
@@ -61,7 +61,7 @@ module "addons" {
 ```
 
 The versions above are examples. List the real ones for your cluster with
-`aws eks describe-addon-versions --addon-name coredns --kubernetes-version 1.33`.
+`aws eks describe-addon-versions --addon-name coredns --kubernetes-version 1.35`.
 
 ## Why it's built this way
 

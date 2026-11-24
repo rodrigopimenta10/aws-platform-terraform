@@ -25,7 +25,7 @@ and its IAM role goes through [`iam-role`](../iam-role/), so it must carry a per
 | `environment` | `string` | n/a (required) | `dev`, `staging`, `prod` or `live`. |
 | `owner` | `string` | n/a (required) | Owner tag value. |
 | `name` | `string` | `"eks"` | Component name; cluster is `<project>-<environment>-<name>`. |
-| `kubernetes_version` | `string` | `"1.33"` | Control-plane minor version (`1.NN`, no patch). |
+| `kubernetes_version` | `string` | `"1.35"` | Control-plane minor version (`1.NN`, no patch). |
 | `subnet_ids` | `list(string)` | n/a (required) | At least two subnets in different AZs; use `modules/vpc` output `eks_subnet_ids`. |
 | `additional_security_group_ids` | `list(string)` | `[]` | Extra security groups on the control-plane network interfaces. |
 | `service_ipv4_cidr` | `string` | `null` | Range for Service (ClusterIP) addresses; must not overlap the VPC. |

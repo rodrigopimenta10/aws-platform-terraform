@@ -27,7 +27,7 @@ run "cluster_is_private_encrypted_and_logged_by_default" {
   command = plan
 
   assert {
-    condition     = aws_eks_cluster.this.name == "platform-dev-eks" && aws_eks_cluster.this.version == "1.33"
+    condition     = aws_eks_cluster.this.name == "platform-dev-eks" && aws_eks_cluster.this.version == "1.35"
     error_message = "Cluster should be named by the labels module and pin the Kubernetes version."
   }
 
@@ -202,7 +202,7 @@ run "rejects_patch_version" {
   command = plan
 
   variables {
-    kubernetes_version = "1.33.2"
+    kubernetes_version = "1.35.2"
   }
 
   expect_failures = [var.kubernetes_version]

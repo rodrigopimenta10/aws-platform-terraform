@@ -56,7 +56,7 @@ run "cluster_is_created_with_the_safe_settings" {
   }
 
   assert {
-    condition     = aws_eks_cluster.this.name == "platform-dev-eks" && aws_eks_cluster.this.version == "1.33"
+    condition     = aws_eks_cluster.this.name == "platform-dev-eks" && aws_eks_cluster.this.version == "1.35"
     error_message = "Moto should report the cluster name and pinned version."
   }
 
