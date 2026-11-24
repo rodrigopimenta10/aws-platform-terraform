@@ -29,7 +29,7 @@ variables {
   addons = {
     "vpc-cni"    = { version = "v1.19.5-eksbuild.1" }
     "coredns"    = { version = "v1.12.1-eksbuild.2" }
-    "kube-proxy" = { version = "v1.33.0-eksbuild.2" }
+    "kube-proxy" = { version = "v1.35.0-eksbuild.2" }
   }
 }
 

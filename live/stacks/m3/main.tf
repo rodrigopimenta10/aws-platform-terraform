@@ -18,7 +18,7 @@ locals {
   cluster_name = "platform-live-eks" # <project>-<environment>-<name> from modules/labels
 
   # One place for the Kubernetes minor version, so the control plane and the add-on lookups cannot disagree.
-  kubernetes_version = "1.33"
+  kubernetes_version = "1.35"
 }
 
 module "labels" {

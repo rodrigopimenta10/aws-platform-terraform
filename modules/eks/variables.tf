@@ -25,13 +25,13 @@ variable "name" {
 }
 
 variable "kubernetes_version" {
-  description = "Kubernetes minor version of the control plane, for example 1.33. Pinned on purpose: AWS upgrades the control plane only when this value changes, and never skips a minor version."
+  description = "Kubernetes minor version of the control plane, for example 1.35. Pinned on purpose: AWS upgrades the control plane only when this value changes, and never skips a minor version."
   type        = string
-  default     = "1.33"
+  default     = "1.35"
 
   validation {
     condition     = can(regex("^1\\.[0-9]{2}$", var.kubernetes_version))
-    error_message = "kubernetes_version must be a minor version such as 1.33 (no patch number)."
+    error_message = "kubernetes_version must be a minor version such as 1.35 (no patch number)."
   }
 }
 
