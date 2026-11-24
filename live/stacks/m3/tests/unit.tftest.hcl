@@ -118,3 +118,12 @@ run "rejects_a_malformed_region" {
 
   expect_failures = [var.region]
 }
+
+run "example_workload_gets_a_boundary_role" {
+  command = plan
+
+  assert {
+    condition     = output.eks_workload_role_name == "platform-live-orders"
+    error_message = "The console link for the Pod Identity screenshot expects platform-live-orders."
+  }
+}

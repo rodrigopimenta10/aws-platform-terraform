@@ -142,7 +142,7 @@ m3:
     url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}?region={region}"
     steps:
       - wait_for: "platform-live-eks"
-      - tab: "Networking"
+      - click: "Networking"
     proves: "API server endpoint access is Private, in the stack's two private subnets, with the cluster security group"
   - name: eks-key
     url: "https://{region}.console.aws.amazon.com/kms/home?region={region}#/kms/keys/{eks_kms_key_id}"
@@ -153,7 +153,7 @@ m3:
     url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}?region={region}"
     steps:
       - wait_for: "platform-live-eks"
-      - tab: "Compute"
+      - click: "Compute"
       - wait_for: "platform-live-nodes-system"
     proves: "Node groups platform-live-nodes-system (On-Demand) and platform-live-nodes-batch (Spot), the first Active with one node"
   - name: eks-node-group
@@ -165,6 +165,14 @@ m3:
     url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}?region={region}"
     steps:
       - wait_for: "platform-live-eks"
-      - tab: "Add-ons"
+      - click: "Add-ons"
       - wait_for: "aws-ebs-csi-driver"
     proves: "Add-ons vpc-cni, coredns, kube-proxy, eks-pod-identity-agent and aws-ebs-csi-driver are installed, Active and on the versions the stack pinned"
+  - name: eks-pod-identity
+    url: "https://{region}.console.aws.amazon.com/eks/clusters/{eks_cluster_name}?region={region}"
+    steps:
+      - wait_for: "platform-live-eks"
+      - click: "Access"
+      - click: "Pod Identity associations"
+      - wait_for: "orders-api"
+    proves: "A Pod Identity association links service account orders-api in namespace orders to the role platform-live-orders"

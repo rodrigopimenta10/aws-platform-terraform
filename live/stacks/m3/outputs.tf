@@ -54,3 +54,8 @@ output "eks_addon_versions" {
   description = "Map of add-on name to the version installed."
   value       = module.addons.addon_versions
 }
+
+output "eks_workload_role_name" {
+  description = "Name of the example workload's Pod Identity role."
+  value       = module.workload_identity.role_name
+}

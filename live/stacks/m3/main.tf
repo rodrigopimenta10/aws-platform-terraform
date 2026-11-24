@@ -204,3 +204,28 @@ module "addons" {
     }
   }
 }
+
+# One example workload: the service account orders-api in namespace orders gets read access to the api
+# repository's metadata. No pod runs; the point is a real role and a real association, which the drill
+# screenshots. Not a dependency of the add-ons: the association only needs the cluster to exist.
+module "workload_identity" {
+  source = "../../../modules/eks-pod-identity"
+
+  project              = "platform"
+  environment          = "live"
+  owner                = var.owner
+  name                 = "orders"
+  cluster_name         = terraform_data.nodes_ready.output
+  namespace            = "orders"
+  service_account      = "orders-api"
+  permissions_boundary = var.permissions_boundary_arn
+
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ecr:DescribeRepositories", "ecr:DescribeImages"]
+      Resource = [module.ecr.repository_arns["api"]]
+    }]
+  })
+}
