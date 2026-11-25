@@ -38,7 +38,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 - [x] **M3.3** (M) Managed node groups: on-demand and spot groups, launch template with IMDSv2 required, labels and taints.
 - [x] **M3.4** (M) EKS add-ons: vpc-cni, coredns, kube-proxy, ebs-csi-driver, with versions pinned by variable.
 - [x] **M3.5** (M) EKS Pod Identity: an association and role for one example workload. ADR 0005 comparing it with IRSA.
-- [ ] **M3.6** (S) IAM policies for the AWS Load Balancer Controller and Karpenter, as a module consumers can attach.
+- [x] **M3.6** (S) IAM policies for the AWS Load Balancer Controller and Karpenter, as a module consumers can attach.
 
 ## M4: Kubernetes platform layer
 - [ ] **M4.1** (M) `platform/` folder with Helm values for aws-load-balancer-controller, metrics-server and external-dns, plus a `kind` smoke test script that installs the charts into a local cluster with Docker.
