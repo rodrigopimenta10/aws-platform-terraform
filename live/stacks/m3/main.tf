@@ -3,6 +3,7 @@
 # M3.1 adds two ECR repositories encrypted with a drill KMS key. M3.2 adds an EKS control plane in a small VPC.
 # M3.3 adds managed node groups (one running on-demand node, one spot group scaled to zero) and a NAT gateway.
 # M3.4 adds the five EKS add-ons and a Pod Identity role for the EBS CSI driver.
+# M3.5 adds a Pod Identity role for one example workload. M3.6 adds the Load Balancer Controller and Karpenter policies.
 #
 # Cost: repositories and the lifecycle policies are free while empty. Each KMS key bills about $1 a month
 # prorated by the hour (a fraction of a cent for a drill) and is scheduled for deletion after 7 days.
@@ -10,6 +11,7 @@
 # M3.3 adds one NAT gateway ($0.045 an hour) and one t3.small node (about $0.02 an hour), plus its 30 GiB
 # volume (fractions of a cent). The spot group is scaled to zero, so it costs nothing. A drill is a few cents.
 # M3.4 adds nothing billable: add-ons are free and their pods run on the one node.
+# M3.6 adds two IAM policies and two Pod Identity roles with associations: all free.
 
 data "aws_caller_identity" "current" {}
 
@@ -228,4 +230,49 @@ module "workload_identity" {
       Resource = [module.ecr.repository_arns["api"]]
     }]
   })
+}
+
+# M3.6: the IAM policies for the AWS Load Balancer Controller and Karpenter, created as real managed policies.
+# Each is also given to a Pod Identity role, the way a real cluster would run the controller. The role gets
+# the policy as an inline document (policy_json) rather than through managed_policy_arns: the managed policy's
+# ARN is unknown until it is created, and iam-role builds its attachments with for_each, which cannot take
+# an unknown key. No controller is installed in the drill, so the roles are never assumed; the point is that IAM
+# accepts both documents and that the associations exist. The Karpenter policy gets the node group role it may pass.
+module "controller_policies" {
+  source = "../../../modules/eks-controller-policies"
+
+  project                 = "platform"
+  environment             = "live"
+  owner                   = var.owner
+  cluster_name            = module.eks.cluster_name
+  region                  = var.region
+  karpenter_node_role_arn = module.nodes.node_role_arn
+}
+
+module "lb_controller_identity" {
+  source = "../../../modules/eks-pod-identity"
+
+  project              = "platform"
+  environment          = "live"
+  owner                = var.owner
+  name                 = "lb-controller"
+  cluster_name         = terraform_data.nodes_ready.output
+  namespace            = "kube-system"
+  service_account      = "aws-load-balancer-controller"
+  permissions_boundary = var.permissions_boundary_arn
+  policy_json          = module.controller_policies.lb_controller_policy_json
+}
+
+module "karpenter_identity" {
+  source = "../../../modules/eks-pod-identity"
+
+  project              = "platform"
+  environment          = "live"
+  owner                = var.owner
+  name                 = "karpenter"
+  cluster_name         = terraform_data.nodes_ready.output
+  namespace            = "kube-system"
+  service_account      = "karpenter"
+  permissions_boundary = var.permissions_boundary_arn
+  policy_json          = module.controller_policies.karpenter_policy_json
 }

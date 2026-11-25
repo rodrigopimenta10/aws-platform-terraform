@@ -176,3 +176,9 @@ m3:
       - click: "Pod Identity associations"
       - wait_for: "orders-api"
     proves: "A Pod Identity association links service account orders-api in namespace orders to the role platform-live-orders"
+  - name: eks-controller-policies
+    url: "https://{region}.console.aws.amazon.com/iam/home?region={region}#/policies"
+    steps:
+      - search: "platform-live-"
+      - wait_for: "platform-live-karpenter"
+    proves: "Customer-managed policies platform-live-lb-controller and platform-live-karpenter exist next to the boundary policy"
