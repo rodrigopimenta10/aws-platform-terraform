@@ -1,0 +1,9 @@
+# kind has no Route 53. The in-memory provider keeps records in the pod, which lets the chart's
+# deployment, RBAC and arguments be exercised with no AWS at all.
+provider:
+  name: inmemory
+txtOwnerId: kind-smoke
+domainFilters:
+  - example.com
+extraArgs: []
+priorityClassName: ""

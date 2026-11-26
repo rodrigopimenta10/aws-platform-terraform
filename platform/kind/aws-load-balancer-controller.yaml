@@ -1,0 +1,13 @@
+# Overrides for the local kind cluster. kind has no AWS account, so give the controller fake
+# but well-formed inputs. It starts, serves its webhooks and waits; it can't create a real load
+# balancer. That proves the chart renders and the pods run, not that AWS calls work.
+clusterName: kind-smoke
+region: us-east-1
+vpcId: vpc-0123456789abcdef0
+replicaCount: 1
+podDisruptionBudget: null
+topologySpreadConstraints: []
+priorityClassName: ""
+env:
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test

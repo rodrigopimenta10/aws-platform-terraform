@@ -1,0 +1,9 @@
+# kind's kubelet uses a self-signed certificate, so metrics-server must skip verifying it.
+# Never do this on EKS.
+replicas: 1
+podDisruptionBudget:
+  enabled: false
+topologySpreadConstraints: []
+args:
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP

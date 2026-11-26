@@ -1,0 +1,39 @@
+# Values for the metrics-server chart. metrics-server feeds `kubectl top` and the
+# HorizontalPodAutoscaler with CPU and memory numbers. It needs no AWS permissions.
+replicas: 2
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+priorityClassName: system-cluster-critical
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+  limits:
+    memory: 300Mi
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: metrics-server
+
+# Run as a non-root user with a read-only root filesystem.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop: [ALL]
+  seccompProfile:
+    type: RuntimeDefault
+
+args:
+  # Prefer the node's internal IP: that is what EKS nodes answer on.
+  - --kubelet-preferred-address-types=InternalIP

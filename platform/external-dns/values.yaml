@@ -1,0 +1,51 @@
+# Values for the external-dns chart. external-dns watches Ingress and Service objects and writes the
+# matching DNS records into Route 53. Pod Identity role: needs route53:ChangeResourceRecordSets
+# on the hosted zones it manages, plus route53:List*.
+# Per-cluster inputs, passed with --set:  txtOwnerId=<cluster>  domainFilters[0]=<zone name>
+replicaCount: 1
+
+serviceAccount:
+  create: true
+  # Match the Pod Identity association's namespace and service_account. No annotation needed.
+  name: external-dns
+
+provider:
+  name: aws
+
+sources:
+  - ingress
+  - service
+
+# upsert-only creates and updates records but never deletes them. Change to "sync" once you
+# trust the setup and want records removed together with their Ingress.
+policy: upsert-only
+
+# Marks the TXT records external-dns writes next to each record so two clusters (or a human) never
+# overwrite each other's entries. Set per cluster; an empty value makes the chart fail loudly.
+txtOwnerId: ""
+domainFilters: []
+
+# Only touch public zones; private zones need their own decision.
+extraArgs:
+  - --aws-zone-type=public
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65534
+  capabilities:
+    drop: [ALL]
+
+priorityClassName: system-cluster-critical
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 128Mi

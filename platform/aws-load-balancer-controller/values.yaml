@@ -1,0 +1,56 @@
+# Values for the aws-load-balancer-controller chart (see ../charts.env for the pinned version).
+# Install into kube-system:
+#   helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+#     -n kube-system -f values.yaml \
+#     --set clusterName=<cluster> --set region=<region> --set vpcId=<vpc-id>
+# clusterName, region and vpcId differ per cluster, so they are passed in, not committed.
+
+# Required by the chart. Left empty so a forgotten --set fails the install instead of
+# silently managing the wrong cluster.
+clusterName: ""
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  # Must match the namespace and service_account of the Pod Identity association
+  # (modules/eks-pod-identity). With Pod Identity there is NO role annotation here;
+  # the association, not the ServiceAccount, links it to the IAM role.
+  name: aws-load-balancer-controller
+
+# Spread the two replicas over nodes and keep one alive during node drains.
+podDisruptionBudget:
+  maxUnavailable: 1
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: aws-load-balancer-controller
+
+priorityClassName: system-cluster-critical
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+# Only reconcile Ingress objects that ask for this controller explicitly.
+ingressClass: alb
+createIngressClassResource: true
+
+# Pods get readiness gates so a rolling update waits until the load balancer sees the new pod.
+enableServiceMutatorWebhook: true
+
+# Tags added to every load balancer, target group and security group the controller creates.
+defaultTags:
+  managed-by: aws-load-balancer-controller
+
+# Shield and WAF integrations stay off: the policy from modules/eks-controller-policies does not
+# grant those API calls, and an enabled feature without permission fails at runtime.
+enableShield: false
+enableWaf: false
+enableWafv2: false
