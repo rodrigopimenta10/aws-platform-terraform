@@ -41,7 +41,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 - [x] **M3.6** (S) IAM policies for the AWS Load Balancer Controller and Karpenter, as a module consumers can attach.
 
 ## M4: Kubernetes platform layer
-- [ ] **M4.1** (M) `platform/` folder with Helm values for aws-load-balancer-controller, metrics-server and external-dns, plus a `kind` smoke test script that installs the charts into a local cluster with Docker.
+- [x] **M4.1** (M) `platform/` folder with Helm values for aws-load-balancer-controller, metrics-server and external-dns, plus a `kind` smoke test script that installs the charts into a local cluster with Docker.
 - [ ] **M4.2** (M) Argo CD bootstrap: an app-of-apps manifest that points Argo CD at `platform/`, tested on kind.
 - [ ] **M4.3** (S) A sample app (nginx or a tiny Go server) with a Dockerfile (multi-stage, non-root), a Kubernetes Deployment, Service and Ingress, and a PodDisruptionBudget.
 
