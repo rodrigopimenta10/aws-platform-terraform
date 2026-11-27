@@ -1,0 +1,35 @@
+# Argo CD Application for external-dns. Two sources: the upstream Helm chart, and this repository, which
+# supplies the values file ($values/... refers to the source marked "ref: values").
+# The chart version must equal charts.env; platform/tests/lint.sh checks it.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/external-dns/
+      chart: external-dns
+      targetRevision: 1.16.1
+      helm:
+        valueFiles:
+          - $values/platform/external-dns/values.yaml
+        # Per-cluster inputs: replace before use.
+        parameters:
+          - {name: txtOwnerId, value: REPLACE_ME}
+          - {name: 'domainFilters[0]', value: REPLACE_ME}
+    - repoURL: https://github.com/rodrigopimenta10/aws-platform-terraform.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

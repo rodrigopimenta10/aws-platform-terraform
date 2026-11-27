@@ -1,0 +1,25 @@
+# The "root" Application of the app-of-apps pattern: it points at a folder that contains only
+# other Application manifests. Apply this one file and Argo CD creates and keeps in sync every
+# add-on listed in ../apps/. Adding an add-on is then a Git commit, not a kubectl command.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/rodrigopimenta10/aws-platform-terraform.git
+    targetRevision: main
+    path: platform/argocd/apps
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true      # an Application removed from Git is removed from the cluster
+      selfHeal: true   # a manual edit in the cluster is reverted to what Git says

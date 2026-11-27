@@ -1,0 +1,31 @@
+# Argo CD Application for metrics-server. Two sources: the upstream Helm chart, and this repository, which
+# supplies the values file ($values/... refers to the source marked "ref: values").
+# The chart version must equal charts.env; platform/tests/lint.sh checks it.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/metrics-server/
+      chart: metrics-server
+      targetRevision: 3.12.2
+      helm:
+        valueFiles:
+          - $values/platform/metrics-server/values.yaml
+    - repoURL: https://github.com/rodrigopimenta10/aws-platform-terraform.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

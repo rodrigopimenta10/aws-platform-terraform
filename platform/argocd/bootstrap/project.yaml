@@ -1,0 +1,26 @@
+# An AppProject is a fence around Applications: which repositories they may pull from and which
+# clusters and namespaces they may write to. The default project allows everything, so the
+# platform gets its own.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Cluster add-ons managed from platform/ in this repository
+  sourceRepos:
+    - https://github.com/rodrigopimenta10/aws-platform-terraform.git
+    - https://aws.github.io/eks-charts
+    - https://kubernetes-sigs.github.io/metrics-server/
+    - https://kubernetes-sigs.github.io/external-dns/
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
+    - server: https://kubernetes.default.svc
+      namespace: external-dns
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  # Add-ons install CRDs, RBAC and webhooks, which are cluster-scoped.
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

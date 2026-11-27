@@ -1,0 +1,36 @@
+# Argo CD Application for aws-load-balancer-controller. Two sources: the upstream Helm chart, and this repository, which
+# supplies the values file ($values/... refers to the source marked "ref: values").
+# The chart version must equal charts.env; platform/tests/lint.sh checks it.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-load-balancer-controller
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://aws.github.io/eks-charts
+      chart: aws-load-balancer-controller
+      targetRevision: 1.13.0
+      helm:
+        valueFiles:
+          - $values/platform/aws-load-balancer-controller/values.yaml
+        # Per-cluster inputs: replace before use (the values file leaves them empty on purpose).
+        parameters:
+          - {name: clusterName, value: REPLACE_ME}
+          - {name: region, value: REPLACE_ME}
+          - {name: vpcId, value: REPLACE_ME}
+    - repoURL: https://github.com/rodrigopimenta10/aws-platform-terraform.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

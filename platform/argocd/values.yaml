@@ -1,0 +1,39 @@
+# Values for the argo-cd chart (version pinned in ../charts.env). Installed once into the
+# "argocd" namespace; Argo CD then installs everything else from Git (see ../README.md).
+global:
+  # Argo CD's own pods are cluster plumbing: schedule them ahead of ordinary workloads.
+  priorityClassName: system-cluster-critical
+
+# Dex is the optional single-sign-on bridge. Off until a real identity provider is chosen:
+# until then log in as admin with the generated secret (argocd-initial-admin-secret).
+dex:
+  enabled: false
+
+configs:
+  params:
+    # Terminate TLS at the load balancer later; the server keeps its own TLS until then.
+    server.insecure: false
+  cm:
+    # A drifted resource is fixed by Git, not by hand: record who changed what in Application status.
+    application.resourceTrackingMethod: annotation
+
+controller:
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {memory: 512Mi}
+server:
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {memory: 256Mi}
+repoServer:
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {memory: 256Mi}
+applicationSet:
+  resources:
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {memory: 128Mi}
+redis:
+  resources:
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {memory: 128Mi}
