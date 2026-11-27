@@ -22,6 +22,8 @@ platform/
   kind/cluster.yaml     the kind cluster itself
   smoke-test.sh     create kind cluster, install all three charts, check, delete
   tests/lint.sh     offline checks, no Docker needed
+  argocd/           Argo CD bootstrap: values, AppProject, root Application, one Application per add-on
+  argocd/smoke-test.sh  Argo CD on kind: apply the root, check the children appear and render
 ```
 
 ## Run it
@@ -57,8 +59,41 @@ account matching `serviceAccount.name` in each values file; `tests/lint.sh` chec
 - **`upsert-only` for external-dns.** It never deletes DNS records, so a mistaken manifest cannot take a
   hostname offline.
 
+## Argo CD (app-of-apps)
+**Argo CD** is a GitOps controller: it watches a Git repository and makes the cluster match it. An
+**Application** is its unit of work (one chart or folder, one destination). In the **app-of-apps**
+pattern one *root* Application points at a folder containing only other Application manifests, so
+adding an add-on is a commit. Here the root (`argocd/bootstrap/root-app.yaml`) points at `argocd/apps/`,
+which holds one Application each for the three add-ons above. Each uses two sources: the upstream chart,
+and this repository for the values file (`$values/platform/<addon>/values.yaml`).
+
+```bash
+helm repo add argo https://argoproj.github.io/argo-helm && helm repo update
+helm upgrade --install argocd argo/argo-cd --version "$(. platform/charts.env; echo $ARGOCD_CHART_VERSION)" \
+  -n argocd --create-namespace -f platform/argocd/values.yaml
+kubectl apply -f platform/argocd/bootstrap/project.yaml -f platform/argocd/bootstrap/root-app.yaml
+platform/argocd/smoke-test.sh   # the same on kind; needs the revision pushed to GitHub
+```
+Before using it on a real cluster, replace the `REPLACE_ME` parameters in `argocd/apps/` (cluster name,
+region, VPC id, DNS owner id and zone). Chart versions in the Applications must equal `charts.env`;
+`tests/lint.sh` fails if they drift.
+
+### Why it's built this way
+- **Own AppProject.** The `default` project can deploy anything anywhere; `platform` limits sources and
+  destination namespaces to what these add-ons need.
+- **Automated sync with `prune` and `selfHeal`.** Git is the source of truth: removed files remove
+  resources, and hand edits are reverted. Turn them off while learning if that surprises you.
+- **Multi-source Applications** keep the values files in `platform/<addon>/` exactly where the Helm
+  smoke test already uses them, so there is one copy of the settings.
+- **Argo CD is installed once with Helm, not by itself.** Something has to exist before Git can drive
+  the cluster; that one step is the bootstrap.
+
 ## What the smoke test does not prove
 kind has no AWS: the load balancer controller starts but cannot create a load balancer, and external-dns
 runs against an in-memory provider. The test shows the charts render, the pods start and the values
 files are accepted by the pinned chart versions. IAM and Route 53 behaviour are only proved in a real
 account.
+
+`argocd/smoke-test.sh` proves Argo CD starts, creates the three child Applications and can render
+their charts from Git. It does not require them to become Healthy: they need real cluster inputs
+(`REPLACE_ME`) and AWS. It pulls from GitHub, so it tests what is pushed, not your working tree.
