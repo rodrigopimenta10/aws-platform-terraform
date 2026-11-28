@@ -3,7 +3,7 @@
 A production-style AWS platform in Terraform: networking, identity, EKS, serverless, observability and
 CI/CD, built as reusable modules with tests.
 
-**Status:** M1, M2 and M3 done. M4.1 and M4.2 done (`platform/`: Helm values for aws-load-balancer-controller, metrics-server and external-dns, a kind smoke test, and an Argo CD app-of-apps bootstrap). Roadmap item M4.3 is next. See [ROADMAP.md](ROADMAP.md).
+**Status:** M1, M2 and M3 done. M4.1, M4.2 and M4.3 done (`platform/`: Helm values for aws-load-balancer-controller, metrics-server and external-dns, a kind smoke test, an Argo CD app-of-apps bootstrap, and a sample Go app with Dockerfile and manifests). M4 is complete; roadmap item M5.1 is next. See [ROADMAP.md](ROADMAP.md).
 
 ## What's in it (when the roadmap is done)
 

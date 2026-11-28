@@ -43,7 +43,7 @@ If Moto can't emulate a resource, cover it with mock-provider unit tests only an
 ## M4: Kubernetes platform layer
 - [x] **M4.1** (M) `platform/` folder with Helm values for aws-load-balancer-controller, metrics-server and external-dns, plus a `kind` smoke test script that installs the charts into a local cluster with Docker.
 - [x] **M4.2** (M) Argo CD bootstrap: an app-of-apps manifest that points Argo CD at `platform/`, tested on kind.
-- [ ] **M4.3** (S) A sample app (nginx or a tiny Go server) with a Dockerfile (multi-stage, non-root), a Kubernetes Deployment, Service and Ingress, and a PodDisruptionBudget.
+- [x] **M4.3** (S) A sample app (nginx or a tiny Go server) with a Dockerfile (multi-stage, non-root), a Kubernetes Deployment, Service and Ingress, and a PodDisruptionBudget.
 
 ## M5: Serverless and data
 - [ ] **M5.1** (M) `modules/queue`: SQS queue with a dead-letter queue, a redrive policy, KMS and an alarm on DLQ depth.
