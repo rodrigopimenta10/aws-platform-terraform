@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sample-app
+  namespace: sample-app
+spec:
+  # With 2 replicas, a node drain may evict one pod at a time, never both.
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sample-app

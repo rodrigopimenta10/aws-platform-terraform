@@ -22,6 +22,7 @@ platform/
   kind/cluster.yaml     the kind cluster itself
   smoke-test.sh     create kind cluster, install all three charts, check, delete
   tests/lint.sh     offline checks, no Docker needed
+  sample-app/       Go server, Dockerfile and manifests that exercise the platform (see its README)
   argocd/           Argo CD bootstrap: values, AppProject, root Application, one Application per add-on
   argocd/smoke-test.sh  Argo CD on kind: apply the root, check the children appear and render
 ```

@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sample-app
+  namespace: sample-app
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sample-app
+  policyTypes: [Ingress, Egress]
+  # The ALB (target-type: ip) connects from VPC addresses, so only the port is restricted.
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8080
+  # No egress rule: the app calls nothing, so it may not open outbound connections at all.
+  egress: []

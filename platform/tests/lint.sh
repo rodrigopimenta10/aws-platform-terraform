@@ -4,6 +4,7 @@
 #   - chart versions are pinned (plain x.y.z, never "latest" or a range)
 #   - every chart has a base values file and a kind override, and both parse
 #   - the smoke test script has valid bash syntax
+#   - sample-app manifests agree (labels, ports, PDB, namespace) and its Dockerfile is multi-stage and non-root
 #   - the ServiceAccount names that Pod Identity associations must match are set
 # Usage: platform/tests/lint.sh
 set -euo pipefail
@@ -82,7 +83,43 @@ for a in apps:
     for s in srcs:
         if s["repoURL"].rstrip("/") not in [x.rstrip("/") for x in allowed]:
             print(f"FAIL: {n} source {s['repoURL']} not allowed by the AppProject"); bad = 1
+# sample app: the manifests must agree with each other and the Dockerfile must be multi-stage and non-root
+sa = here + "/sample-app"
+def load(n):
+    return yaml.safe_load(open(f"{sa}/k8s/{n}.yaml"))
+dep, svc, ing, pdb, netpol = (load(n) for n in ("deployment", "service", "ingress", "pdb", "networkpolicy"))
+label = {"app.kubernetes.io/name": "sample-app"}
+tmpl = dep["spec"]["template"]
+ctr = tmpl["spec"]["containers"][0]
+checks = [
+    (dep["spec"]["selector"]["matchLabels"] == label, "Deployment selector must match the sample-app label"),
+    (tmpl["metadata"]["labels"] == label, "pod template labels must match the Deployment selector"),
+    (svc["spec"]["selector"] == label, "Service selector must match the pod labels"),
+    (pdb["spec"]["selector"]["matchLabels"] == label, "PodDisruptionBudget selector must match the pod labels"),
+    (netpol["spec"]["podSelector"]["matchLabels"] == label, "NetworkPolicy podSelector must match the pod labels"),
+    (pdb["spec"]["minAvailable"] < dep["spec"]["replicas"], "PDB minAvailable must be below replicas or no node can ever drain"),
+    (svc["spec"]["ports"][0]["targetPort"] == ctr["ports"][0]["name"], "Service targetPort must name the container port"),
+    (ing["spec"]["rules"][0]["http"]["paths"][0]["backend"]["service"]["name"] == svc["metadata"]["name"], "Ingress backend must be the Service"),
+    (tmpl["spec"]["securityContext"].get("runAsNonRoot") is True, "pod must set runAsNonRoot"),
+    (ctr["securityContext"].get("readOnlyRootFilesystem") is True, "container must use a read-only root filesystem"),
+    ("limits" in ctr["resources"] and "requests" in ctr["resources"], "container needs resource requests and limits"),
+    (len({d["metadata"]["namespace"] for d in (dep, svc, ing, pdb, netpol)}) == 1, "all namespaced objects must share one namespace"),
+]
+for ok, msg in checks:
+    if not ok:
+        print("FAIL: sample-app:", msg); bad = 1
+df = open(sa + "/Dockerfile").read()
+froms = re.findall(r"^FROM\s", df, re.M)
+user = re.findall(r"^USER\s+(\S+)", df, re.M)
+if len(froms) < 2:
+    print("FAIL: sample-app Dockerfile must be multi-stage"); bad = 1
+if not user or user[-1].split(":")[0] in ("root", "0"):
+    print("FAIL: sample-app Dockerfile must end as a non-root USER"); bad = 1
 sys.exit(bad)
 PYEOF
+
+if command -v go >/dev/null; then
+  (cd "$HERE/sample-app" && test -z "$(gofmt -l .)" && go vet ./... && go test ./...) || { echo "FAIL: sample-app go checks"; fail=1; }
+fi
 
 [ $fail -eq 0 ] && echo "platform lint passed" || { echo "platform lint FAILED"; exit 1; }
